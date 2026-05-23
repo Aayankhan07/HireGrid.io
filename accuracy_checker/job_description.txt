@@ -1,0 +1,9 @@
+JOB TITLE: Senior Python & FastAPI Developer
+REQUIRED EXPERIENCE: 6 Years
+REQUIRED EDUCATION: Bachelor
+REQUIRED SKILLS: Python, FastAPI, PostgreSQL, Docker, AWS
+PREFERRED LOCATION: Remote
+
+DESCRIPTION:
+We are looking for a Senior Developer to spearhead development of our screening pipeline.
+The ideal candidate will optimize databases, design microservices, and deploy on AWS using Docker.

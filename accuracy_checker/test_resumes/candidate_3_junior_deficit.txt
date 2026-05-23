@@ -1,0 +1,8 @@
+NAME: Ryan Flores
+EMAIL: ryan@example.com
+EDUCATION: Associate Degree in Coding - Community College
+EXPERIENCE:
+Junior Developer - InternCo: Jan 2025 - Present (Just starting)
+SKILLS: Python, HTML, CSS, Git
+PROJECTS:
+- Created simple web layouts using HTML and CSS.

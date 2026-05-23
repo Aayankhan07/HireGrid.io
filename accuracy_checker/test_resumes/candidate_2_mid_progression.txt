@@ -1,0 +1,10 @@
+NAME: Alex Carter
+EMAIL: alex@example.com
+EDUCATION: Bachelor of Science in Information Technology - University of Lahore
+EXPERIENCE:
+Software Engineer - AppLab: Jun 2021 - Present (Using Python, FastAPI, PostgreSQL)
+Junior Intern - StartUpCo: 2020 - 2021
+PROJECTS:
+- Developed backend microservices using FastAPI and SQLite.
+- Integrated PostgreSQL databases with Python apps.
+SKILLS: Python, FastAPI, PostgreSQL, Git, Linux, Docker

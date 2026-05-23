@@ -1,0 +1,177 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+
+import { User } from '@/types';
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (email: string, password: string, name: string, role: string) => Promise<boolean>;
+  loginWithGoogle: (credential: string) => Promise<boolean>;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Read session state on mount
+    const savedUser = sessionStorage.getItem('hiregrid_io_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (_) {
+        sessionStorage.removeItem('hiregrid_io_user');
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      const isLoginPath = pathname === '/login';
+      if (!user && !isLoginPath) {
+        // Not authenticated and not on login page -> Redirect to login
+        router.push('/login');
+      } else if (user && isLoginPath) {
+        // Authenticated and trying to access login page -> Redirect to dashboard
+        router.push('/');
+      }
+    }
+  }, [user, loading, pathname, router]);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Authentication failed. Please verify credentials.');
+      }
+
+      const userData = await response.json();
+      const authenticatedUser: User = {
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+      };
+
+      sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
+      setUser(authenticatedUser);
+      setLoading(false);
+      router.push('/');
+      return true;
+    } catch (err: any) {
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  const signup = async (
+    email: string,
+    password: string,
+    name: string,
+    role: string
+  ): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password,
+          name: name.trim() || 'Alex Sterling',
+          role: role.trim() || 'Recruitment Lead',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Registration failed. Please check details.');
+      }
+
+      setLoading(false);
+      return true;
+    } catch (err: any) {
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  const loginWithGoogle = async (credential: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credential: credential,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Google Authentication failed. Please try again.');
+      }
+
+      const userData = await response.json();
+      const authenticatedUser: User = {
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+      };
+
+      sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
+      setUser(authenticatedUser);
+      setLoading(false);
+      router.push('/');
+      return true;
+    } catch (err: any) {
+      setLoading(false);
+      throw err;
+    }
+  };
+
+  const logout = () => {
+    sessionStorage.removeItem('hiregrid_io_user');
+    setUser(null);
+    router.push('/login');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

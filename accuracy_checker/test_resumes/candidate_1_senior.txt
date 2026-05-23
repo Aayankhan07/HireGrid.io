@@ -1,0 +1,12 @@
+NAME: Sarah Jenkins
+EMAIL: sarah@example.com
+EDUCATION: Master of Computer Science - Stanford University
+EXPERIENCE:
+Senior Backend Engineer - TechCorp: Jan 2020 - Present (Working on Python, FastAPI, AWS)
+Software Engineer - CloudSystems: Jun 2017 - Dec 2019 (Working on Python, Docker, Postgres)
+Junior Developer - InternCo: 2015 - 2016
+PROJECTS:
+- Spearheaded development of a high-performance screening core using FastAPI.
+- Optimized PostgreSQL queries by 45% using replicas.
+- Deployed scalable Docker containers on AWS ECS.
+SKILLS: Python, FastAPI, PostgreSQL, Docker, AWS, Git, Microservices, REST API

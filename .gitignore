@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+build/
+.npm/
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+backend/venv/
+backend/__pycache__/
+backend/scratch/
+frontend/.next/
+frontend/node_modules/
+
+# Local databases & session stores
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Local Environment Variables
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Accuracy Reports and Benchmarks
+accuracy_checker/accuracy_report.json
+
