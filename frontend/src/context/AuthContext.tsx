@@ -37,13 +37,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-      const isLoginPath = pathname === '/login';
-      if (!user && !isLoginPath) {
-        // Not authenticated and not on login page -> Redirect to login
+      const isDashboardPath = pathname === '/dashboard';
+      if (!user && isDashboardPath) {
+        // Trying to visit private dashboard while guest -> Redirect to corporate login
         router.push('/login');
-      } else if (user && isLoginPath) {
-        // Authenticated and trying to access login page -> Redirect to dashboard
-        router.push('/');
+      } else if (user && pathname === '/login') {
+        // Already authenticated -> Redirect directly to active session dashboard
+        router.push('/dashboard');
       }
     }
   }, [user, loading, pathname, router]);
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
       setUser(authenticatedUser);
       setLoading(false);
-      router.push('/');
+      router.push('/dashboard');
       return true;
     } catch (err: any) {
       setLoading(false);
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
       setUser(authenticatedUser);
       setLoading(false);
-      router.push('/');
+      router.push('/dashboard');
       return true;
     } catch (err: any) {
       setLoading(false);
