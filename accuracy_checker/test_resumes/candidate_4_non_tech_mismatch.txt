@@ -1,8 +1,0 @@
-NAME: Emma Stone
-EMAIL: emma@example.com
-EDUCATION: Bachelor of Arts in History
-EXPERIENCE:
-Store Manager - retail outlets: 2018 - 2024
-SKILLS: Communication, Team Leadership, Sales, Excel
-PROJECTS:
-- Led a team of 15 retail sales associates.
