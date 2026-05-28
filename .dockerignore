@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/venv/
+backend/.venv/
+backend/*.db
+backend/scratch/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# Git & IDE
+.git/
+.gitignore
+.gitattributes
+*.md
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore

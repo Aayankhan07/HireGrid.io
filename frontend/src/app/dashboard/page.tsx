@@ -202,7 +202,7 @@ export default function Home() {
       : [];
 
     try {
-      const response = await fetch("http://localhost:8000/api/analyze/stream", {
+      const response = await fetch("/api/analyze/stream", {
         method: "POST",
         body: formData
       });
