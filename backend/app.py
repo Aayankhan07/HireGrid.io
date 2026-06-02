@@ -1,3 +1,13 @@
+import os
+from dotenv import load_dotenv
+
+# Load environment configuration from root or local directory
+parent_env = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+if os.path.exists(parent_env):
+    load_dotenv(parent_env)
+else:
+    load_dotenv()
+
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, HTMLResponse
@@ -6,7 +16,6 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 import asyncio
 import json
-import os
 
 from core.parser import extract_text_from_pdf
 from core.nlp_layer import extract_all
@@ -19,9 +28,19 @@ from core.rules_engine import (
 
 app = FastAPI(title="HireGrid.io API", version="2.0.0")
 
+# Parse allowed origins from environment variable
+allowed_origins_raw = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000")
+allowed_origins = [origin.strip() for origin in allowed_origins_raw.split(",") if origin.strip()]
+
+# Starlette CORS middleware raises RuntimeError if allow_origins is ["*"] and allow_credentials is True.
+if "*" in allowed_origins:
+    import logging
+    logging.warning("CORS Configuration: '*' cannot be used with allow_credentials=True. Falling back to http://localhost:3000")
+    allowed_origins = ["http://localhost:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,7 +131,8 @@ async def google_login(payload: GoogleLogin):
         raise HTTPException(status_code=400, detail="Missing Google credential")
 
     # Developer Mock Mode check
-    if credential == "mock_google_jwt_token_bypass" or credential.startswith("mock_google_jwt_"):
+    allow_dev_bypass = os.environ.get("ALLOW_DEV_BYPASS", "false").lower() == "true"
+    if allow_dev_bypass and (credential == "mock_google_jwt_token_bypass" or credential.startswith("mock_google_jwt_")):
         email = "demo.recruiter@hiregrid.io"
         name = "Demo Recruiter"
         # Parse simulated payload if custom format is used: mock_google_jwt_email_name

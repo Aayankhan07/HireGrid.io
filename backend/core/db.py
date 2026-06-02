@@ -1,5 +1,13 @@
 import sqlite3
 import os
+from dotenv import load_dotenv
+
+# Load environment configuration
+parent_env = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env')
+if os.path.exists(parent_env):
+    load_dotenv(parent_env)
+else:
+    load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "hiregrid_io.db")
 
@@ -28,17 +36,22 @@ def init_db():
     conn.commit()
     
     # Seed default admin user if not exists
-    cursor.execute("SELECT * FROM users WHERE email = ?", ("admin@hiregrid.io",))
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@hiregrid.io").strip().lower()
+    cursor.execute("SELECT * FROM users WHERE email = ?", (admin_email,))
     admin = cursor.fetchone()
     if not admin:
-        admin_pass = "password123"
+        admin_pass = os.environ.get("ADMIN_PASSWORD", "password123")
+        if admin_pass == "password123":
+            import logging
+            logging.warning("SECURITY WARNING: Using default admin password 'password123'. Change ADMIN_PASSWORD in your .env file!")
+        
         h_hash, h_salt = hash_password(admin_pass)
         cursor.execute(
             "INSERT INTO users (email, name, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?)",
-            ("admin@hiregrid.io", "Alex Sterling", h_hash, h_salt, "Recruitment Director")
+            (admin_email, "Alex Sterling", h_hash, h_salt, "Recruitment Director")
         )
         conn.commit()
-        print("Database initialized & default admin user seeded successfully.")
+        print(f"Database initialized & default admin user ({admin_email}) seeded successfully.")
     else:
         print("Database already initialized.")
     
