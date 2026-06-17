@@ -13,6 +13,9 @@ export interface Candidate {
   missing_skills: string[];
   extracted_info: Record<string, any>;
   summary: string;
+  status?: string;
+  notes?: string;
+  candidate_filename?: string;
 }
 
 export interface Screening {
