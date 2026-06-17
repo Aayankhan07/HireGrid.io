@@ -132,43 +132,34 @@ export default function Home() {
   const [processingLogs, setProcessingLogs] = useState<string[]>([]);
   const [processingProgress, setProcessingProgress] = useState(0);
 
-  // Load screenings when user is available
+  // Load screenings dynamically from backend SQLite database
   useEffect(() => {
     if (typeof window !== 'undefined' && user) {
-      const screeningsKey = `hiregrid_io_screenings_${user.email}`;
-      const saved = localStorage.getItem(screeningsKey);
-      if (saved) {
+      const fetchScreenings = async () => {
         try {
-          const parsed = JSON.parse(saved);
-          setScreenings(parsed);
-          if (parsed.length > 0) {
-            setActiveId(parsed[0].id);
-          } else {
-            setActiveId(null);
+          const token = sessionStorage.getItem('hiregrid_io_token') || '';
+          const response = await fetch('/api/screenings', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setScreenings(data);
+            if (data.length > 0) {
+              setActiveId(data[0].id);
+            } else {
+              setActiveId(null);
+            }
           }
-        } catch (_) {
-          // Fallback to empty list
-          setScreenings([]);
-          setActiveId(null);
-          localStorage.setItem(screeningsKey, JSON.stringify([]));
+        } catch (err) {
+          console.error("Error loading screenings:", err);
         }
-      } else {
-        // First load: initialize with empty list
-        setScreenings([]);
-        setActiveId(null);
-        localStorage.setItem(screeningsKey, JSON.stringify([]));
-      }
+      };
+      fetchScreenings();
     }
   }, [user]);
-
-  // Save screenings helper
-  const saveScreenings = (updatedList: Screening[]) => {
-    setScreenings(updatedList);
-    if (user) {
-      const screeningsKey = `hiregrid_io_screenings_${user.email}`;
-      localStorage.setItem(screeningsKey, JSON.stringify(updatedList));
-    }
-  };
 
   const handleSelectScreening = (id: string) => {
     setActiveId(id);
@@ -176,12 +167,27 @@ export default function Home() {
     setIsDrawerOpen(false);
   };
 
-  const handleDeleteScreening = (id: string, e: React.MouseEvent) => {
+  const handleDeleteScreening = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = screenings.filter(sc => sc.id !== id);
-    saveScreenings(updated);
-    if (activeId === id) {
-      setActiveId(updated.length > 0 ? updated[0].id : null);
+    try {
+      const token = sessionStorage.getItem('hiregrid_io_token') || '';
+      const response = await fetch(`/api/screenings/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const updated = screenings.filter(sc => sc.id !== id);
+        setScreenings(updated);
+        if (activeId === id) {
+          setActiveId(updated.length > 0 ? updated[0].id : null);
+        }
+      } else {
+        console.error("Failed to delete screening from database");
+      }
+    } catch (err) {
+      console.error("Error deleting screening:", err);
     }
   };
 
@@ -202,8 +208,12 @@ export default function Home() {
       : [];
 
     try {
+      const token = sessionStorage.getItem('hiregrid_io_token') || '';
       const response = await fetch("/api/analyze/stream", {
         method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       });
 
@@ -238,18 +248,9 @@ export default function Home() {
                     setProcessingProgress(Math.round((payload.step / payload.total) * 100));
                   }
                 } else if (payload.type === "result") {
-                  // Screening fully parsed
-                  const newScreening: Screening = {
-                    id: `screening-${Date.now()}`,
-                    job_title: payload.data.job_title,
-                    total_candidates: payload.data.total_candidates,
-                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                    required_skills: reqSkillsList,
-                    candidates: payload.data.ranked_candidates
-                  };
-
-                  const updatedList = [newScreening, ...screenings];
-                  saveScreenings(updatedList);
+                  // Screening fully parsed and persisted in DB
+                  const newScreening = payload.data;
+                  setScreenings(prev => [newScreening, ...prev]);
                   setActiveId(newScreening.id);
                   setProcessingLogs(prev => [...prev, "✓ Talent Screening completed successfully!"]);
                   setProcessingProgress(100);
@@ -564,6 +565,21 @@ export default function Home() {
           onClose={() => {
             setIsDrawerOpen(false);
             setTimeout(() => setSelectedCandidate(null), 300); // clear candidate after slide animation completes
+          }}
+          onUpdateCandidate={(updatedCand) => {
+            setSelectedCandidate(updatedCand);
+            if (activeId) {
+              const updatedScreenings = screenings.map(sc => {
+                if (sc.id === activeId) {
+                  return {
+                    ...sc,
+                    candidates: sc.candidates.map(c => c.candidate_id === updatedCand.candidate_id ? updatedCand : c)
+                  };
+                }
+                return sc;
+              });
+              setScreenings(updatedScreenings);
+            }
           }}
         />
       </main>

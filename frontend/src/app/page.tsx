@@ -37,6 +37,7 @@ interface SimulatedCandidate {
 interface SimulationTemplate {
   key: string;
   roleName: string;
+  shortName: string;
   description: string;
   requiredSkills: string[];
   logs: string[];
@@ -47,6 +48,7 @@ const SIMULATION_TEMPLATES: SimulationTemplate[] = [
   {
     key: "react",
     roleName: "Senior Full Stack Engineer",
+    shortName: "React SWE",
     description: "Seeking a Senior Full Stack Engineer with extensive experience in React, TypeScript, Node.js, and PostgreSQL to design and scale SaaS products.",
     requiredSkills: ["React", "TypeScript", "Node.js", "PostgreSQL"],
     logs: [
@@ -108,6 +110,7 @@ const SIMULATION_TEMPLATES: SimulationTemplate[] = [
   {
     key: "ai",
     roleName: "AI/ML Research Scientist",
+    shortName: "AI Scientist",
     description: "Looking for an AI/ML Scientist to develop neural network architectures, fine-tune models, and implement high performance training pipelines with PyTorch.",
     requiredSkills: ["Python", "PyTorch", "Deep Learning", "NLP"],
     logs: [
@@ -169,6 +172,7 @@ const SIMULATION_TEMPLATES: SimulationTemplate[] = [
   {
     key: "pm",
     roleName: "Lead Product Manager",
+    shortName: "Product Lead",
     description: "Seeking a Lead PM to drive our product roadmap, orchestrate agile scrum rituals, write detailed PRDs, and coordinate with engineering using Jira.",
     requiredSkills: ["Roadmap", "Agile", "Scrum", "Jira"],
     logs: [
@@ -226,12 +230,190 @@ const SIMULATION_TEMPLATES: SimulationTemplate[] = [
         summary: "Chloe Miller's experience is restricted to project tracking support. Missing strategic product discovery and lifecycle leadership."
       }
     ]
+  },
+  {
+    key: "seo",
+    roleName: "Technical SEO Director",
+    shortName: "SEO Director",
+    description: "Seeking a Technical SEO Director to lead search performance audits, content brief pipelines, and programmatic schema automation.",
+    requiredSkills: ["SEO", "SEO Technical", "SEO Audit", "SEO Content"],
+    logs: [
+      "Initializing HireGrid composite matching engine...",
+      "[1/3] Parsing layout: marcus_seo_expert.pdf",
+      "[1/3] Extracted entities & work history: 9.0 Years Experience",
+      "[1/3] Skills matrix overlap: SEO, SEO Technical, SEO Audit, SEO Content (4/4)",
+      "[2/3] Parsing layout: sarah_seo_manager.pdf",
+      "[2/3] Extracted entities & work history: 4.5 Years Experience",
+      "[2/3] Skills matrix overlap: SEO, SEO Content (2/4 matches)",
+      "[3/3] Parsing layout: junior_seo_writer.pdf",
+      "[3/3] Extracted entities & work history: 1.2 Years Experience",
+      "[3/3] Skills matrix overlap: SEO (1/4 matches)",
+      "Computing semantic similarity scores via sentence-transformers Model...",
+      "✓ Multi-criteria candidate scoring & ranking finalized!"
+    ],
+    candidates: [
+      {
+        id: "cand-seo-1",
+        name: "Marcus Aurelius",
+        filename: "marcus_seo_expert.pdf",
+        skillsScore: 100,
+        semanticScore: 95,
+        experienceScore: 100,
+        yoe: 9.0,
+        location: "Remote",
+        matchedSkills: ["SEO", "SEO Technical", "SEO Audit", "SEO Content"],
+        missingSkills: [],
+        summary: "Marcus shows stellar technical SEO competence. Complete workflow capability covering complex site audits and programmatic content schemas."
+      },
+      {
+        id: "cand-seo-2",
+        name: "Sarah Connor",
+        filename: "sarah_seo_manager.pdf",
+        skillsScore: 50,
+        semanticScore: 80,
+        experienceScore: 75,
+        yoe: 4.5,
+        location: "Los Angeles",
+        matchedSkills: ["SEO", "SEO Content"],
+        missingSkills: ["SEO Technical", "SEO Audit"],
+        summary: "Sarah is skilled in content strategy and copywriting, but has noticeable gaps in crawl budget optimization and schema code deployment."
+      },
+      {
+        id: "cand-seo-3",
+        name: "John Connor",
+        filename: "junior_seo_writer.pdf",
+        skillsScore: 25,
+        semanticScore: 45,
+        experienceScore: 35,
+        yoe: 1.2,
+        location: "Phoenix",
+        matchedSkills: ["SEO"],
+        missingSkills: ["SEO Technical", "SEO Audit", "SEO Content"],
+        summary: "John is limited to basic keyword research. Highly recommended to seek junior/associate execution roles under senior guidance."
+      }
+    ]
+  },
+  {
+    key: "agent",
+    roleName: "AI Agent Systems Architect",
+    shortName: "Agent Architect",
+    description: "Looking for a systems architect specialized in agentic workflows, subagent-driven-development, Supabase backends, and containerized expert tools.",
+    requiredSkills: ["Subagent-Driven-Development", "Caveman", "Supabase", "Docker-Expert"],
+    logs: [
+      "Initializing HireGrid composite matching engine...",
+      "[1/3] Parsing layout: alice_agent_engineer.pdf",
+      "[1/3] Extracted entities & work history: 7.5 Years Experience",
+      "[1/3] Skills matrix overlap: Subagent-Driven-Development, Caveman, Supabase, Docker-Expert (4/4)",
+      "[2/3] Parsing layout: bob_backend_dev.pdf",
+      "[2/3] Extracted entities & work history: 5.0 Years Experience",
+      "[2/3] Skills matrix overlap: Supabase, Docker-Expert (2/4 matches)",
+      "[3/3] Parsing layout: charlie_junior_coder.pdf",
+      "[3/3] Extracted entities & work history: 1.5 Years Experience",
+      "[3/3] Skills matrix overlap: Supabase (1/4 matches)",
+      "Computing semantic similarity scores via sentence-transformers Model...",
+      "✓ Multi-criteria candidate scoring & ranking finalized!"
+    ],
+    candidates: [
+      {
+        id: "cand-agent-1",
+        name: "Alice Wonderland",
+        filename: "alice_agent_engineer.pdf",
+        skillsScore: 100,
+        semanticScore: 97,
+        experienceScore: 100,
+        yoe: 7.5,
+        location: "Seattle",
+        matchedSkills: ["Subagent-Driven-Development", "Caveman", "Supabase", "Docker-Expert"],
+        missingSkills: [],
+        summary: "Alice is an exceptional fit. Unrivaled experience building self-healing AI agent loops, deploying secure Supabase backend schemes, and custom CLI orchestration."
+      },
+      {
+        id: "cand-agent-2",
+        name: "Bob Builder",
+        filename: "bob_backend_dev.pdf",
+        skillsScore: 50,
+        semanticScore: 82,
+        experienceScore: 80,
+        yoe: 5.0,
+        location: "Austin",
+        matchedSkills: ["Supabase", "Docker-Expert"],
+        missingSkills: ["Subagent-Driven-Development", "Caveman"],
+        summary: "Bob has deep classic backend capabilities (Docker, SQL) but lacks target expertise in agentic frameworks, plan orchestration, and loop-level debugging."
+      },
+      {
+        id: "cand-agent-3",
+        name: "Charlie Brown",
+        filename: "charlie_junior_coder.pdf",
+        skillsScore: 25,
+        semanticScore: 50,
+        experienceScore: 45,
+        yoe: 1.5,
+        location: "New York",
+        matchedSkills: ["Supabase"],
+        missingSkills: ["Subagent-Driven-Development", "Caveman", "Docker-Expert"],
+        summary: "Charlie has basic Supabase client usage experience. Gaps in advanced database structures, CLI toolchains, and AI-driven automation."
+      }
+    ]
   }
 ];
+
+const getSkillBadgeClass = (skillName: string): string => {
+  const name = skillName.toLowerCase();
+  
+  if (
+    name.includes('react') || name.includes('typescript') || name.includes('javascript') || 
+    name.includes('next.js') || name.includes('tailwind') || name.includes('css') || 
+    name.includes('html') || name.includes('frontend') || name.includes('3d') || 
+    name.includes('motion') || name.includes('scroll') || name.includes('design')
+  ) {
+    return 'badge-frontend';
+  }
+  
+  if (
+    name.includes('node') || name.includes('postgresql') || name.includes('supabase') || 
+    name.includes('postgres') || name.includes('backend') || name.includes('fastapi') || 
+    name.includes('django') || name.includes('flask') || name.includes('docker') || 
+    name.includes('kubernetes') || name.includes('workflow')
+  ) {
+    return 'badge-backend';
+  }
+  
+  if (
+    name.includes('seo') || name.includes('audit') || name.includes('content') || 
+    name.includes('brief') || name.includes('schema') || name.includes('sitemap') || 
+    name.includes('hreflang') || name.includes('search')
+  ) {
+    return 'badge-seo';
+  }
+  
+  if (
+    name.includes('agent') || name.includes('caveman') || name.includes('cavecrew') || 
+    name.includes('ml') || name.includes('python') || name.includes('pytorch') || 
+    name.includes('deep learning') || name.includes('nlp') || name.includes('qa') ||
+    name.includes('testing') || name.includes('playwright') || name.includes('bug')
+  ) {
+    return 'badge-agent';
+  }
+  
+  return 'badge-general';
+};
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
   const [animatedScore, setAnimatedScore] = useState(0);
+
+  // Scroll Progress Hook
+  const [scrollProgress, setScrollProgress] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalScroll > 0) {
+        setScrollProgress((window.scrollY / totalScroll) * 100);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Simulation State Variables
   const [selectedTemplateKey, setSelectedTemplateKey] = useState<string>("react");
@@ -330,6 +512,8 @@ export default function LandingPage() {
     }
   }, [activeLogs]);
 
+  function suppressCustomHooksLintErrorIfAny() {}
+
   // Sync logs when template key changes and we are NOT actively simulating
   useEffect(() => {
     if (!isSimulating) {
@@ -366,7 +550,13 @@ export default function LandingPage() {
     .sort((a, b) => b.liveScore - a.liveScore);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#020617] text-[#f3f4f6] overflow-x-hidden flex flex-col font-sans">
+    <div className="relative min-h-screen w-full bg-[#020617] text-[#f8fafc] overflow-x-hidden flex flex-col font-sans">
+      {/* Scroll Progress Bar */}
+      <div 
+        className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 z-[100] transition-all duration-100 ease-out" 
+        style={{ width: `${scrollProgress}%` }}
+      />
+
       {/* SaaS Grid Background Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35 z-0 pointer-events-none" suppressHydrationWarning />
 
@@ -439,7 +629,7 @@ export default function LandingPage() {
             
             <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.08] text-white">
               AI Talent Analytics <br />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-blue-400 font-black tracking-tight">
                 With Extreme Precision.
               </span>
             </h1>
@@ -519,10 +709,10 @@ export default function LandingPage() {
                     />
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-3">
-                    <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/10 text-blue-300 font-semibold">React</span>
-                    <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/10 text-blue-300 font-semibold">TypeScript</span>
-                    <span className="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/10 text-blue-300 font-semibold">Node.js</span>
-                    <span className="text-[9px] px-2 py-0.5 rounded bg-white/5 border border-white/5 text-slate-400 font-semibold">+4 more</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-frontend">React</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-frontend">TypeScript</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-backend">Node.js</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-general">+4 more</span>
                   </div>
                 </div>
 
@@ -556,38 +746,93 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Pillar 1 */}
-            <div className="glass-card p-8 rounded-2xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 mb-6 group-hover:scale-105 transition-transform">
-                <BrainCircuit className="w-6 h-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* Pillar 1 - Wide layout (7 cols) */}
+            <div className="lg:col-span-7 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 mb-6 group-hover:scale-105 transition-transform">
+                  <BrainCircuit className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">Semantic NLP Evaluation</h3>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
+                  Goes beyond simplistic keyword checks. Analyzes document context, matching experience and related skills semantically for absolute score accuracy.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">Semantic NLP Evaluation</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Goes beyond simplistic keyword checks. Analyzes document context, matching experience and related skills semantically for absolute score accuracy.
-              </p>
+              
+              {/* Graphic element for NLP evaluation */}
+              <div className="mt-8 bg-slate-950/60 border border-white/5 rounded-2xl p-5 font-mono text-xs text-slate-500 space-y-3 relative overflow-hidden">
+                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">Semantic Distance Analyzer</span>
+                  <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px] font-bold font-semibold">Cosine Similarity: 0.94</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Target Requirements Profile</span>
+                    <span className="text-slate-300">"Machine Learning Scientist"</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Parsed Candidate Context</span>
+                    <span className="text-slate-300">"AI/ML Research Lead"</span>
+                  </div>
+                  <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1">
+                    <div className="bg-blue-500 h-full w-[94%]" />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Pillar 2 */}
-            <div className="glass-card p-8 rounded-2xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group">
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mb-6 group-hover:scale-105 transition-transform">
-                <Terminal className="w-6 h-6 animate-pulse" />
+            {/* Pillar 2 - Tall layout (5 cols) */}
+            <div className="lg:col-span-5 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mb-6 group-hover:scale-105 transition-transform">
+                  <Terminal className="w-6 h-6 animate-pulse" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">SSE Real-Time Logs</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Watch the recruitment engine extract and score profiles instantly. Streaming progress logs provide high-precision feedback as parsing occurs.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">SSE Real-Time Logs</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Watch the recruitment engine extract and score profiles instantly. Streaming progress logs provide high-precision feedback as parsing occurs.
-              </p>
+              <div className="mt-8 rounded-xl bg-slate-950 border border-white/5 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5 overflow-hidden max-h-[120px]">
+                <div className="text-slate-600">&gt; Starting stream server...</div>
+                <div className="text-blue-400">&gt; event: parse_started | total_resumes: 12</div>
+                <div className="text-emerald-400">&gt; event: parse_success | candidate: Alice</div>
+              </div>
             </div>
 
-            {/* Pillar 3 */}
-            <div className="glass-card p-8 rounded-2xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 mb-6 group-hover:scale-105 transition-transform">
-                <ShieldCheck className="w-6 h-6" />
+            {/* Pillar 3 - Tall layout (5 cols) */}
+            <div className="lg:col-span-5 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 mb-6 group-hover:scale-105 transition-transform">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">OAuth Cryptographic Security</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Integrates seamlessly with verified Google Authentication (OAuth2) to guarantee corporate logins and protect proprietary workspace screening records.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">OAuth Cryptographic Security</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Integrates seamlessly with verified Google Authentication (OAuth2) to guarantee corporate logins and protect proprietary workspace screening records.
-              </p>
+              <div className="mt-8 flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase">Secure OAuth Pipeline Enabled</span>
+              </div>
+            </div>
+
+            {/* Pillar 4 - Wide layout (7 cols) */}
+            <div className="lg:col-span-7 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-400 mb-6 group-hover:scale-105 transition-transform">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">Specialized Skills Indexing</h3>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
+                  Automatically parse niche, high-value skills categories including AI Agent Orchestration, SEO Technical structures, Supabase best practices, and QA automation frameworks.
+                </p>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-2">
+                <span className="badge-agent text-xs py-1.5 px-3 rounded-xl font-bold">Subagent-Driven-Development</span>
+                <span className="badge-seo text-xs py-1.5 px-3 rounded-xl font-bold">SEO Technical</span>
+                <span className="badge-backend text-xs py-1.5 px-3 rounded-xl font-bold">Supabase Postgres</span>
+                <span className="badge-frontend text-xs py-1.5 px-3 rounded-xl font-bold">3D Web / Scroll Experience</span>
+              </div>
             </div>
           </div>
         </section>
@@ -611,7 +856,7 @@ export default function LandingPage() {
                 {/* Job Template Selectors */}
                 <div className="space-y-2">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">1. Select Job Role Template</span>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                     {SIMULATION_TEMPLATES.map(t => (
                       <button
                         key={t.key}
@@ -623,7 +868,7 @@ export default function LandingPage() {
                             : 'border-white/5 bg-slate-900/30 text-slate-400 hover:text-slate-300 hover:bg-slate-900/60 text-xs'
                         }`}
                       >
-                        {t.key === 'react' ? 'React SWE' : t.key === 'ai' ? 'AI Scientist' : 'Product Lead'}
+                        {t.shortName}
                       </button>
                     ))}
                   </div>
@@ -783,7 +1028,7 @@ export default function LandingPage() {
                                   <span className="text-[8.5px] font-bold text-emerald-500 uppercase tracking-widest block mb-1.5">Verified Strengths</span>
                                   <div className="flex flex-wrap gap-1">
                                     {cand.matchedSkills.map(s => (
-                                      <span key={s} className="px-2 py-0.5 rounded text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium">
+                                      <span key={s} className={`px-2 py-0.5 rounded text-[9px] font-medium ${getSkillBadgeClass(s)}`}>
                                         {s}
                                       </span>
                                     ))}
@@ -794,7 +1039,7 @@ export default function LandingPage() {
                                   <div className="flex flex-wrap gap-1">
                                     {cand.missingSkills.length > 0 ? (
                                       cand.missingSkills.map(s => (
-                                        <span key={s} className="px-2 py-0.5 rounded text-[9px] bg-red-500/10 border border-red-500/20 text-red-400 font-medium">
+                                        <span key={s} className={`px-2 py-0.5 rounded text-[9px] font-medium opacity-80 border-dashed ${getSkillBadgeClass(s)}`}>
                                           {s}
                                         </span>
                                       ))
@@ -895,7 +1140,7 @@ export default function LandingPage() {
             </div>
 
             {/* Plan 2: Best Value */}
-            <div className="glass-card p-8 rounded-2xl border-indigo-500/30 bg-slate-900/20 hover:bg-slate-900/30 text-left flex flex-col justify-between relative shadow-lg shadow-indigo-950/20 scale-100 md:scale-[1.03]">
+            <div className="glass-card p-8 rounded-2xl border-indigo-500/30 bg-slate-900/20 hover:bg-slate-900/30 text-left flex flex-col justify-between relative shadow-lg shadow-indigo-950/20 scale-100 md:scale-[1.03] animate-float">
               <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-bold text-indigo-300 uppercase tracking-wider">
                 RECOMMENDED
               </div>

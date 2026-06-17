@@ -21,13 +21,115 @@ interface CandidateDrawerProps {
   candidate: Candidate | null;
   isOpen: boolean;
   onClose: () => void;
+  onUpdateCandidate?: (updatedCandidate: Candidate) => void;
 }
 
 export default function CandidateDrawer({
   candidate,
   isOpen,
-  onClose
+  onClose,
+  onUpdateCandidate
 }: CandidateDrawerProps) {
+  const [status, setStatus] = React.useState(candidate?.status || 'Applied');
+  const [notes, setNotes] = React.useState(candidate?.notes || '');
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  // Sync state when candidate changes
+  useEffect(() => {
+    if (candidate) {
+      setStatus(candidate.status || 'Applied');
+      setNotes(candidate.notes || '');
+    }
+  }, [candidate]);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!candidate) return;
+    setStatus(newStatus);
+    setIsSaving(true);
+    try {
+      const token = sessionStorage.getItem('hiregrid_io_token') || '';
+      const response = await fetch(`/api/candidates/${candidate.candidate_id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (response.ok) {
+        if (onUpdateCandidate) {
+          onUpdateCandidate({
+            ...candidate,
+            status: newStatus
+          });
+        }
+      } else {
+        console.error("Failed to update status");
+      }
+    } catch (err) {
+      console.error("Error updating status:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!candidate) return;
+    setIsSaving(true);
+    try {
+      const token = sessionStorage.getItem('hiregrid_io_token') || '';
+      const response = await fetch(`/api/candidates/${candidate.candidate_id}/notes`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ notes: notes })
+      });
+      if (response.ok) {
+        if (onUpdateCandidate) {
+          onUpdateCandidate({
+            ...candidate,
+            notes: notes
+          });
+        }
+      } else {
+        console.error("Failed to update notes");
+      }
+    } catch (err) {
+      console.error("Error updating notes:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDownloadCV = async () => {
+    if (!candidate) return;
+    try {
+      const token = sessionStorage.getItem('hiregrid_io_token') || '';
+      const response = await fetch(`/api/candidates/${candidate.candidate_id}/cv`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = candidate.candidate_filename || `${candidate.candidate_name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error("Failed to download CV");
+      }
+    } catch (err) {
+      console.error("Error downloading CV:", err);
+    }
+  };
   
   // Close on Escape key press
   useEffect(() => {
@@ -128,6 +230,69 @@ export default function CandidateDrawer({
               {candidate.summary}
             </p>
             <div className="absolute right-[-20px] bottom-[-20px] w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none" />
+          </div>
+
+          {/* Recruiter Actions Section */}
+          <div className="glass-panel p-5 rounded-2xl border border-white/10 bg-slate-900/20 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <h3 className="text-xs font-bold text-white uppercase tracking-widest">Recruiter Actions</h3>
+              
+              {/* CV Download button */}
+              {candidate.candidate_id && (
+                <button
+                  onClick={handleDownloadCV}
+                  className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  Download Original CV
+                </button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Status Selector */}
+              <div className="space-y-1.5 text-left">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Candidate Status</label>
+                <select
+                  value={status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={isSaving}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-semibold text-slate-300 focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  <option value="Applied">Applied</option>
+                  <option value="Shortlisted">Shortlisted</option>
+                  <option value="Interviewing">Interviewing</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+
+              {/* Status Badge display */}
+              <div className="flex items-end pb-1 text-left">
+                <span className={`text-[10px] px-2.5 py-1 rounded font-bold uppercase ${
+                  status === 'Shortlisted' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
+                  status === 'Interviewing' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20' :
+                  status === 'Rejected' ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
+                  'bg-slate-800 text-slate-400 border border-white/5'
+                }`}>
+                  Current Phase: {status}
+                </span>
+              </div>
+            </div>
+
+            {/* Recruiter Notes */}
+            <div className="space-y-1.5 text-left">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Recruiter Notes & Feedback</label>
+                {isSaving && <span className="text-[9px] text-blue-400 animate-pulse font-semibold uppercase">Saving...</span>}
+              </div>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={handleSaveNotes}
+                placeholder="Write interview feedback, technical ratings, or evaluation notes here..."
+                className="w-full h-24 bg-slate-950 border border-white/10 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none font-medium"
+              />
+              <p className="text-[9px] text-slate-600 italic mt-1 text-right">Notes are saved automatically when clicking outside the input area.</p>
+            </div>
           </div>
 
           {/* Grid layout for detailed parameters */}

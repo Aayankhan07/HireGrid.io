@@ -75,6 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
 
       sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
+      if (userData.token) {
+        sessionStorage.setItem('hiregrid_io_token', userData.token);
+      }
       setUser(authenticatedUser);
       setLoading(false);
       router.push('/dashboard');
@@ -145,6 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
 
       sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
+      if (userData.token) {
+        sessionStorage.setItem('hiregrid_io_token', userData.token);
+      }
       setUser(authenticatedUser);
       setLoading(false);
       router.push('/dashboard');
@@ -157,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     sessionStorage.removeItem('hiregrid_io_user');
+    sessionStorage.removeItem('hiregrid_io_token');
     setUser(null);
     router.push('/login');
   };
