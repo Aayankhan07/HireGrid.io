@@ -158,9 +158,9 @@ export default function CandidateDrawer({
   };
 
   const getProgressBarColor = (score: number) => {
-    if (score >= 80) return 'from-emerald-500 to-teal-400';
-    if (score >= 60) return 'from-blue-500 to-indigo-400';
-    return 'from-slate-500 to-slate-400';
+    if (score >= 80) return 'bg-emerald-500';
+    if (score >= 60) return 'bg-blue-500';
+    return 'bg-slate-500';
   };
 
   // Safe mapping of score breakdown with defaults
@@ -186,32 +186,32 @@ export default function CandidateDrawer({
 
       {/* Slide-out Drawer Panel */}
       <aside 
-        className={`fixed top-0 right-0 h-screen w-full max-w-2xl bg-slate-950/95 backdrop-blur-2xl border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 transition-transform duration-300 ease-out overflow-y-auto flex flex-col ${
+        className={`fixed top-0 right-0 h-screen w-full max-w-2xl bg-[#0d1326] border-l border-slate-800 shadow-2xl z-50 transition-transform duration-300 ease-out overflow-y-auto flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Drawer Header */}
-        <div className="p-6 border-b border-white/5 flex items-center justify-between sticky top-0 bg-slate-950/80 backdrop-blur-md z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white text-base border border-white/15 shadow-lg">
+        <div className="p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#0d1326]/90 backdrop-blur-sm z-10">
+          <div className="flex items-center gap-4 text-left">
+            <div className="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-200 text-base border border-slate-700">
               {initials}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-wide">{candidate.candidate_name}</h2>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">
+              <h2 className="text-xl font-bold text-white tracking-tight">{candidate.candidate_name}</h2>
+              <p className="text-xs text-slate-450 mt-1 font-medium">
                 {candidate.extracted_info?.education || 'Unknown Degree'} • {candidate.extracted_info?.experience_years || 0} YOE
               </p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <div className={`px-3 py-1.5 rounded-xl border text-sm font-bold flex items-center gap-1.5 ${getScoreColor(candidate.score)}`}>
-              <Zap className="w-4 h-4" />
+            <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 ${getScoreColor(candidate.score)}`}>
+              <Zap className="w-3.5 h-3.5" />
               <span>{candidate.score.toFixed(0)}% Match</span>
             </div>
             <button 
               onClick={onClose}
-              className="w-9 h-9 rounded-xl border border-white/5 bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="w-9 h-9 rounded-lg border border-slate-800 bg-[#080c18] flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
             >
               <X className="w-4.5 h-4.5" />
             </button>
@@ -221,27 +221,26 @@ export default function CandidateDrawer({
         {/* Drawer Content */}
         <div className="p-6 space-y-8 flex-1">
           {/* AI generated summary */}
-          <div className="glass-panel p-5 rounded-2xl border border-white/5 relative overflow-hidden bg-white/[0.01]">
+          <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18]/80 text-left shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest leading-none">HireGrid.io AI Summary</h4>
+              <Sparkles className="w-4 h-4 text-blue-450" />
+              <h4 className="text-xs font-bold text-blue-455 uppercase tracking-widest leading-none">HireGrid.io AI Summary</h4>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed font-medium">
               {candidate.summary}
             </p>
-            <div className="absolute right-[-20px] bottom-[-20px] w-24 h-24 bg-blue-500/5 rounded-full filter blur-xl pointer-events-none" />
           </div>
 
           {/* Recruiter Actions Section */}
-          <div className="glass-panel p-5 rounded-2xl border border-white/10 bg-slate-900/20 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+          <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-850 pb-3">
               <h3 className="text-xs font-bold text-white uppercase tracking-widest">Recruiter Actions</h3>
               
               {/* CV Download button */}
               {candidate.candidate_id && (
                 <button
                   onClick={handleDownloadCV}
-                  className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-md border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   Download Original CV
                 </button>
@@ -256,7 +255,7 @@ export default function CandidateDrawer({
                   value={status}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   disabled={isSaving}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-semibold text-slate-300 focus:outline-none focus:border-blue-500 cursor-pointer"
+                  className="w-full bg-[#060913] border border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 focus:outline-none focus:border-blue-500 cursor-pointer"
                 >
                   <option value="Applied">Applied</option>
                   <option value="Shortlisted">Shortlisted</option>
@@ -268,10 +267,10 @@ export default function CandidateDrawer({
               {/* Status Badge display */}
               <div className="flex items-end pb-1 text-left">
                 <span className={`text-[10px] px-2.5 py-1 rounded font-bold uppercase ${
-                  status === 'Shortlisted' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
-                  status === 'Interviewing' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20' :
-                  status === 'Rejected' ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
-                  'bg-slate-800 text-slate-400 border border-white/5'
+                  status === 'Shortlisted' ? 'bg-emerald-500/15 text-emerald-450 border border-emerald-500/20' :
+                  status === 'Interviewing' ? 'bg-blue-500/15 text-blue-450 border border-blue-500/20' :
+                  status === 'Rejected' ? 'bg-red-500/15 text-red-455 border border-red-500/20' :
+                  'bg-slate-800 text-slate-400 border border-slate-800'
                 }`}>
                   Current Phase: {status}
                 </span>
@@ -289,7 +288,7 @@ export default function CandidateDrawer({
                 onChange={(e) => setNotes(e.target.value)}
                 onBlur={handleSaveNotes}
                 placeholder="Write interview feedback, technical ratings, or evaluation notes here..."
-                className="w-full h-24 bg-slate-950 border border-white/10 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none font-medium"
+                className="w-full h-24 bg-[#060913] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-blue-500 resize-none font-medium"
               />
               <p className="text-[9px] text-slate-600 italic mt-1 text-right">Notes are saved automatically when clicking outside the input area.</p>
             </div>
@@ -297,35 +296,35 @@ export default function CandidateDrawer({
 
           {/* Grid layout for detailed parameters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-white/5 bg-slate-900/40 flex items-start gap-3">
+            <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
               <Briefcase className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Experience Level</span>
-                <p className="text-sm font-semibold text-white mt-0.5">{candidate.extracted_info?.experience_years ?? 0} Years</p>
+                <p className="text-sm font-semibold text-white mt-1">{candidate.extracted_info?.experience_years ?? 0} Years</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-white/5 bg-slate-900/40 flex items-start gap-3">
+            <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
               <BookOpen className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Education Level</span>
-                <p className="text-sm font-semibold text-white mt-0.5">{candidate.extracted_info?.education || 'Unknown'}</p>
+                <p className="text-sm font-semibold text-white mt-1">{candidate.extracted_info?.education || 'Unknown'}</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-white/5 bg-slate-900/40 flex items-start gap-3">
+            <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
               <MapPin className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Applicant Location</span>
-                <p className="text-sm font-semibold text-white mt-0.5">{candidate.extracted_info?.location || 'Not Specified'}</p>
+                <p className="text-sm font-semibold text-white mt-1">{candidate.extracted_info?.location || 'Not Specified'}</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border border-white/5 bg-slate-900/40 flex items-start gap-3">
+            <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
               <Globe className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Spoken Languages</span>
-                <p className="text-sm font-semibold text-white mt-0.5 truncate">
+                <p className="text-sm font-semibold text-white mt-1 truncate">
                   {candidate.extracted_info?.languages && candidate.extracted_info.languages.length > 0 
                     ? candidate.extracted_info.languages.join(', ') 
                     : 'English'}
@@ -336,21 +335,21 @@ export default function CandidateDrawer({
 
           {/* Breakdown progress bar items */}
           <div className="space-y-4">
-            <div>
+            <div className="text-left">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Weighted Matching Breakdown</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Component details parsed against target parameters.</p>
+              <p className="text-xs text-slate-500 mt-1">Component details parsed against target parameters.</p>
             </div>
             
-            <div className="glass-panel p-5 rounded-2xl border border-white/5 space-y-4">
+            <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-4 text-left">
               {breakdownItems.map((item, idx) => (
                 <div key={idx} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-slate-400">{item.label}</span>
                     <span className="text-slate-200">{item.value.toFixed(0)}%</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden p-[0.5px]">
+                  <div className="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden">
                     <div 
-                      className={`h-full rounded-full bg-gradient-to-r ${getProgressBarColor(item.value)}`}
+                      className={`h-full rounded-full ${getProgressBarColor(item.value)}`}
                       style={{ width: `${item.value}%` }}
                     />
                   </div>
@@ -362,16 +361,16 @@ export default function CandidateDrawer({
           {/* Matched and missing skills */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Matched Skills */}
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Matched Core Stack ({candidate.matched_skills.length})</h4>
+                <ShieldCheck className="w-4 h-4 text-emerald-450" />
+                <h4 className="text-xs font-bold text-emerald-455 uppercase tracking-wider">Matched Core Stack ({candidate.matched_skills.length})</h4>
               </div>
-              <div className="glass-panel p-4 rounded-xl border border-emerald-500/10 bg-emerald-500/5 min-h-[140px] flex flex-wrap gap-2 content-start">
+              <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/50 min-h-[140px] flex flex-wrap gap-2 content-start">
                 {candidate.matched_skills.map((skill, idx) => (
                   <span 
                     key={idx}
-                    className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+                    className="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-350"
                   >
                     {skill}
                   </span>
@@ -383,16 +382,16 @@ export default function CandidateDrawer({
             </div>
 
             {/* Missing Skills */}
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-red-400" />
-                <h4 className="text-xs font-bold text-red-400 uppercase tracking-wider">Missing Competencies ({candidate.missing_skills.length})</h4>
+                <ShieldAlert className="w-4 h-4 text-red-450" />
+                <h4 className="text-xs font-bold text-red-455 uppercase tracking-wider">Missing Competencies ({candidate.missing_skills.length})</h4>
               </div>
-              <div className="glass-panel p-4 rounded-xl border border-red-500/10 bg-red-500/5 min-h-[140px] flex flex-wrap gap-2 content-start">
+              <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/50 min-h-[140px] flex flex-wrap gap-2 content-start">
                 {candidate.missing_skills.map((skill, idx) => (
                   <span 
                     key={idx}
-                    className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-red-500/10 border border-red-500/20 text-red-300"
+                    className="px-2.5 py-1 text-xs font-semibold rounded bg-red-500/10 border border-red-500/20 text-red-300"
                   >
                     {skill}
                   </span>
@@ -406,12 +405,12 @@ export default function CandidateDrawer({
 
           {/* Career chronology details */}
           <div className="space-y-4">
-            <div>
+            <div className="text-left">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Career Chronology & Role Matches</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Job history extracted sequentially from parsed CV document.</p>
+              <p className="text-xs text-slate-500 mt-1">Job history extracted sequentially from parsed CV document.</p>
             </div>
 
-            <div className="glass-panel p-5 rounded-2xl border border-white/5 space-y-5 relative">
+            <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-5 relative text-left">
               {candidate.extracted_info?.past_titles && candidate.extracted_info.past_titles.length > 0 ? (
                 candidate.extracted_info.past_titles.map((title: string, idx: number) => {
                   const isJunior = /junior|associate|intern|graduate/i.test(title);
@@ -420,22 +419,22 @@ export default function CandidateDrawer({
                     <div key={idx} className="flex gap-4 relative">
                       {/* Timeline indicator bar */}
                       {idx < candidate.extracted_info.past_titles.length - 1 && (
-                        <div className="absolute left-[13px] top-[26px] bottom-[-20px] w-0.5 bg-white/5" />
+                        <div className="absolute left-[13px] top-[26px] bottom-[-20px] w-0.5 bg-slate-800" />
                       )}
                       
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border z-10 ${
+                      <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border z-10 ${
                         isSenior 
-                          ? 'bg-blue-500/15 border-blue-500/25 text-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.15)]' 
+                          ? 'bg-blue-500/10 border-blue-500/20 text-blue-455' 
                           : isJunior 
-                          ? 'bg-purple-500/10 border-purple-500/10 text-purple-400' 
-                          : 'bg-slate-900 border-white/5 text-slate-400'
+                          ? 'bg-purple-500/5 border-purple-500/10 text-purple-400' 
+                          : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}>
                         <Briefcase className="w-3.5 h-3.5" />
                       </div>
                       
                       <div>
-                        <h4 className="text-sm font-bold text-white leading-tight">{title}</h4>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <h4 className="text-sm font-semibold text-white leading-tight">{title}</h4>
+                        <p className="text-xs text-slate-500 mt-1.5 font-normal">
                           {idx === 0 ? 'Most Recent Engagement' : idx === 1 ? 'Previous Engagement' : 'Historic Core Position'}
                         </p>
                       </div>
@@ -444,11 +443,11 @@ export default function CandidateDrawer({
                 })
               ) : (
                 <div className="flex gap-4 relative">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-slate-900 border border-white/5 text-slate-400">
+                  <div className="w-7 h-7 rounded-md flex items-center justify-center bg-slate-900 border border-slate-800 text-slate-400">
                     <Briefcase className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white leading-tight">Professional Profile Sequence</h4>
+                    <h4 className="text-sm font-semibold text-white leading-tight">Professional Profile Sequence</h4>
                     <p className="text-xs text-slate-500 mt-1">Parsed chronological text profile is mapped. Standard history is loaded.</p>
                   </div>
                 </div>
@@ -458,13 +457,13 @@ export default function CandidateDrawer({
 
           {/* Certifications & projects parsed list */}
           {(candidate.extracted_info?.certifications && candidate.extracted_info.certifications.length > 0) && (
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Professional Credentials</h3>
               <div className="flex flex-wrap gap-2">
                 {candidate.extracted_info.certifications.map((cert: string, idx: number) => (
                   <span 
                     key={idx}
-                    className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-900 border border-white/5 text-slate-300"
+                    className="px-2.5 py-1 text-xs font-semibold rounded bg-slate-900 border border-slate-800 text-slate-355"
                   >
                     {cert}
                   </span>

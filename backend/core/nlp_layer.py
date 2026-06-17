@@ -358,6 +358,15 @@ def extract_job_titles(text: str) -> list:
                     
     return titles
 
+def extract_email(text: str) -> str:
+    match = re.search(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', text)
+    return match.group(0) if match else ""
+
+def extract_phone(text: str) -> str:
+    pattern = r'\b(?:\+?\d{1,3}[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}\b'
+    match = re.search(pattern, text)
+    return match.group(0) if match else ""
+
 def extract_all(text: str, skill_lexicon: set, filename: str = "") -> dict:
     skills = extract_skills(text, skill_lexicon)
     experience = calculate_total_experience(text)
@@ -368,6 +377,8 @@ def extract_all(text: str, skill_lexicon: set, filename: str = "") -> dict:
     languages = extract_languages(text)
     projects = extract_projects(text)
     past_titles = extract_job_titles(text)
+    email = extract_email(text)
+    phone = extract_phone(text)
 
     candidate_summary = text[:1500].strip()
     candidate_name = extract_candidate_name(text, filename)
@@ -384,6 +395,8 @@ def extract_all(text: str, skill_lexicon: set, filename: str = "") -> dict:
         "languages": languages,
         "projects": projects,
         "past_titles": past_titles,
+        "email": email,
+        "phone": phone,
         "summary": candidate_summary,
         "candidate_name": candidate_name,
         "raw_text": text

@@ -8,103 +8,82 @@
 }
 
 :root {
-  --background: #020617;
+  --background: #060913;
   --foreground: #f8fafc;
-  --neon-blue: 59, 130, 246;
-  --neon-indigo: 99, 102, 241;
-  --neon-purple: 168, 85, 247;
+  --slate-900: #0a0f1d;
+  --slate-800: #121829;
+  --slate-700: #1e294b;
+  --slate-600: #334155;
+  --accent-blue: #3b82f6;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-jakarta), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  letter-spacing: -0.011em;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-outfit), sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
-/* Glassmorphism Styles */
+/* Premium Structured SaaS Panels & Cards (No AI glowing/glassmorphic templates) */
 .glass-panel {
-  background: rgba(8, 13, 28, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #0a0f1d;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.55);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
 
 .glass-card {
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: #0d1326;
   border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(var(--neon-blue), 0.08) 0%, rgba(var(--neon-indigo), 0.08) 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 0;
-  pointer-events: none;
-}
-
 .glass-card:hover {
-  background: rgba(20, 30, 55, 0.55);
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 12px 35px -5px rgba(99, 102, 241, 0.18), 0 0 20px 0 rgba(59, 130, 246, 0.05);
-  transform: translateY(-4px) scale(1.01);
-}
-
-.glass-card:hover::before {
-  opacity: 1;
+  background: #111830;
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
 .glass-input {
-  background: rgba(8, 13, 28, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 14px;
+  background: #080c18;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   color: #ffffff;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
 }
 
 .glass-input:focus {
   outline: none;
-  border-color: rgba(99, 102, 241, 0.7);
-  background: rgba(8, 13, 28, 0.95);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+  border-color: var(--accent-blue);
+  background: #0a0f20;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
+/* Premium Solid & Flat Button Styles (Stripe/Linear-like) */
 .glass-button {
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  backdrop-filter: blur(8px);
-  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
   font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
 }
 
 .glass-button:hover {
-  background: rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.7);
-  box-shadow: 0 0 25px rgba(59, 130, 246, 0.35);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 .glass-button:active {
@@ -112,24 +91,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glass-button-primary {
-  background: linear-gradient(135deg, rgb(59, 130, 246) 0%, rgb(99, 102, 241) 50%, rgb(168, 85, 247) 100%);
-  background-size: 200% 200%;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #3b82f6;
+  border: 1px solid #60a5fa;
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  animation: gradientMove 6s ease infinite;
 }
 
 .glass-button-primary:hover {
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 15px rgba(168, 85, 247, 0.25);
-  transform: translateY(-2px) scale(1.01);
+  background: #2563eb;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .glass-button-primary:active {
-  transform: translateY(0) scale(1);
+  transform: scale(0.98);
 }
 
 /* Custom Scrollbars */
@@ -139,117 +117,70 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(2, 6, 23, 0.8);
+  background: #060913;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(59, 130, 246, 0.3);
 }
 
-/* Skill Categorized Badges - Premium styling */
+/* Refined Skill Categorized Badges (No glowing neon shadows) */
 .badge-frontend {
   background: rgba(14, 165, 233, 0.08);
-  border: 1px solid rgba(14, 165, 233, 0.25);
+  border: 1px solid rgba(14, 165, 233, 0.18);
   color: #38bdf8;
-  text-shadow: 0 0 10px rgba(14, 165, 233, 0.15);
 }
 .badge-backend {
   background: rgba(168, 85, 247, 0.08);
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.18);
   color: #c084fc;
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
 }
 .badge-seo {
   background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  border: 1px solid rgba(34, 197, 94, 0.18);
   color: #4ade80;
-  text-shadow: 0 0 10px rgba(34, 197, 94, 0.15);
 }
 .badge-agent {
   background: rgba(244, 63, 94, 0.08);
-  border: 1px solid rgba(244, 63, 94, 0.25);
+  border: 1px solid rgba(244, 63, 94, 0.18);
   color: #fb7185;
-  text-shadow: 0 0 10px rgba(244, 63, 94, 0.15);
 }
 .badge-general {
   background: rgba(100, 116, 139, 0.08);
-  border: 1px solid rgba(100, 116, 139, 0.25);
+  border: 1px solid rgba(100, 116, 139, 0.18);
   color: #94a3b8;
 }
 
-/* Animations */
+/* Page Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(16px); opacity: 0; }
+  from { transform: translateY(12px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.12; transform: scale(1); }
-  50% { opacity: 0.25; transform: scale(1.05); }
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes floatElement {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
 .animate-fade-in {
-  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-float {
-  animation: floatElement 6s ease-in-out infinite;
-}
-
-/* Radial Glow Backdrops */
-.neon-glow-blue {
-  position: absolute;
-  width: 450px;
-  height: 450px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
-  filter: blur(50px);
-  pointer-events: none;
-  animation: pulseGlow 9s infinite ease-in-out;
-}
-
-.neon-glow-indigo {
-  position: absolute;
-  width: 550px;
-  height: 550px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%);
-  filter: blur(60px);
-  pointer-events: none;
-  animation: pulseGlow 11s infinite ease-in-out alternate;
-}
-
-/* Custom premium sliding progress bar animation */
+/* Subtle loading gradient indicator */
 @keyframes loadingBar {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
 
 .animate-loading-bar {
-  animation: loadingBar 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  animation: loadingBar 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-

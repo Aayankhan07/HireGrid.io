@@ -7,6 +7,7 @@ import NewScreeningForm from '@/components/forms/NewScreeningForm';
 import RankingTable from '@/components/dashboard/RankingTable';
 import DeepAnalysis from '@/components/dashboard/DeepAnalysis';
 import CandidateDrawer from '@/components/ui/CandidateDrawer';
+import PipelineBoard from '@/components/dashboard/PipelineBoard';
 import { Candidate, Screening } from '@/types';
 import { 
   Users, 
@@ -53,7 +54,9 @@ const SEED_SCREENINGS: Screening[] = [
           certifications: ["AWS Certified Developer"],
           projects_count: 3,
           past_titles: ["Lead Software Engineer", "Full Stack Developer", "Junior Engineer"],
-          projects: ["Omni-Channel FinTech SaaS", "Real-Time Collaboration Dashboard", "Inventory Tracking App"]
+          projects: ["Omni-Channel FinTech SaaS", "Real-Time Collaboration Dashboard", "Inventory Tracking App"],
+          email: "alex.mckinney@example.com",
+          phone: "+1 (555) 019-2834"
         },
         summary: "Alex McKinney shows strong overall fit. Matches 4 required skill(s). Gaps: Docker. Experience level fully meets senior requirements (6.5 YOE). Outstanding semantic alignment with job description."
       },
@@ -80,7 +83,9 @@ const SEED_SCREENINGS: Screening[] = [
           certifications: [],
           projects_count: 2,
           past_titles: ["Frontend Developer", "Software Engineering Intern"],
-          projects: ["Developer Portfolio v3", "Open-Source React UI Toolkit"]
+          projects: ["Developer Portfolio v3", "Open-Source React UI Toolkit"],
+          email: "sarah.lin@example.com",
+          phone: "+1 (555) 014-9982"
         },
         summary: "Sarah Lin shows moderate overall fit. Matches 3 required skill(s). Gaps: Node.js, PostgreSQL. Experience level is slightly below target senior requirements. Fair conceptual and semantic alignment."
       },
@@ -107,7 +112,9 @@ const SEED_SCREENINGS: Screening[] = [
           certifications: [],
           projects_count: 1,
           past_titles: ["Junior Associate Intern"],
-          projects: ["HTML Personal Site"]
+          projects: ["HTML Personal Site"],
+          email: "john.doe@example.com",
+          phone: "+1 (555) 012-3456"
         },
         summary: "John Doe shows limited overall fit. Matches 1 required skill(s). Gaps: TypeScript, Node.js, PostgreSQL, Docker. Significant experience and seniority deficits detected. Auto-routed to review."
       }
@@ -119,7 +126,7 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const [screenings, setScreenings] = useState<Screening[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'rankings' | 'analytics'>('rankings');
+  const [activeTab, setActiveTab] = useState<'rankings' | 'analytics' | 'pipeline'>('rankings');
   
   // Modal & Drawer State
   const [isNewScreeningOpen, setIsNewScreeningOpen] = useState(false);
@@ -279,15 +286,11 @@ export default function Home() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden" suppressHydrationWarning>
-        {/* Ambient radial glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-600/10 rounded-full filter blur-[100px]" suppressHydrationWarning />
-        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-600/10 rounded-full filter blur-[100px]" suppressHydrationWarning />
-        <div className="glass-panel p-8 rounded-3xl border border-white/5 flex flex-col items-center gap-6 relative z-10 shadow-2xl bg-slate-950/40 backdrop-blur-xl" suppressHydrationWarning>
-          {/* Pulsing loading ring spinner */}
+      <div className="min-h-screen bg-[#060913] flex flex-col items-center justify-center relative overflow-hidden" suppressHydrationWarning>
+        <div className="p-8 rounded-2xl border border-slate-800 flex flex-col items-center gap-6 relative z-10 shadow-2xl bg-[#0d1326]" suppressHydrationWarning>
+          {/* Simple, clean loading spinner */}
           <div className="relative w-10 h-10 flex items-center justify-center shrink-0" suppressHydrationWarning>
-            <div className="absolute inset-0 rounded-full border border-white/5 border-t-blue-500 animate-spin" suppressHydrationWarning />
-            <div className="w-6 h-6 rounded-full bg-slate-900 border border-white/5 animate-pulse" suppressHydrationWarning />
+            <div className="absolute inset-0 rounded-full border border-slate-800 border-t-blue-500 animate-spin" suppressHydrationWarning />
           </div>
 
           <div className="text-center" suppressHydrationWarning>
@@ -314,7 +317,7 @@ export default function Home() {
     : 0;
 
   return (
-    <div className="flex min-h-screen bg-slate-950/20">
+    <div className="flex min-h-screen bg-[#060913]">
       {/* Fixed Left Sidebar Navigation */}
       <Sidebar
         screenings={screenings}
@@ -333,13 +336,9 @@ export default function Home() {
       />
 
       {/* Main Content Pane */}
-      <main className="flex-1 pl-0 lg:pl-80 min-h-screen relative flex flex-col">
-        {/* Glow effects */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-blue-600/5 to-indigo-500/5 rounded-full filter blur-[120px] pointer-events-none" suppressHydrationWarning />
-        <div className="absolute bottom-0 right-10 w-[400px] h-[400px] bg-emerald-500/5 rounded-full filter blur-[100px] pointer-events-none" suppressHydrationWarning />
-
+      <main className="flex-1 pl-0 lg:pl-80 min-h-screen relative flex flex-col bg-[#060913]">
         {/* Dashboard Header Bar */}
-        <header className="p-6 border-b border-white/5 flex items-center justify-between z-10 bg-slate-950/20 backdrop-blur-md sticky top-0">
+        <header className="p-6 border-b border-slate-800 flex items-center justify-between z-10 bg-[#060913]/80 backdrop-blur-md sticky top-0">
           <div className="flex items-center gap-4 min-w-0">
             {/* Hamburger Button on Mobile */}
             <button
@@ -352,7 +351,7 @@ export default function Home() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 border border-blue-500/10 px-2.5 py-0.5 rounded-md">Talent Dashboard</span>
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md">Talent Dashboard</span>
                 <span className="text-xs text-slate-500">• {activeScreening?.date || "Analytics Active"}</span>
               </div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight mt-1.5 truncate">
@@ -363,12 +362,12 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             {activeScreening && (
-              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-white/5">
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#080c18] border border-slate-800">
                 <button
                   onClick={() => setActiveTab('rankings')}
-                  className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeTab === 'rankings'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
+                      ? 'bg-slate-800 text-slate-100 border border-slate-700/50 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -377,14 +376,25 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => setActiveTab('analytics')}
-                  className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeTab === 'analytics'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
+                      ? 'bg-slate-800 text-slate-100 border border-slate-700/50 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <BarChart3 className="w-3.5 h-3.5" />
                   <span>Deep Analysis</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('pipeline')}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeTab === 'pipeline'
+                      ? 'bg-slate-800 text-slate-100 border border-slate-700/50 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Pipeline</span>
                 </button>
               </div>
             )}
@@ -396,15 +406,15 @@ export default function Home() {
           {activeScreening ? (
             <>
               {/* Target Parameters Segment */}
-              <div className="glass-panel p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden bg-white/[0.005]">
+              <div className="p-5 rounded-xl border border-slate-800 space-y-3 bg-[#0d1326] shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Required Stack Parameters</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Required Stack Parameters</span>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {activeScreening.required_skills.map((skill, sIdx) => (
                     <span 
                       key={sIdx}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 shadow-sm"
+                      className="px-3 py-1 text-xs font-medium rounded-md bg-[#080c18] border border-slate-800 text-slate-300"
                     >
                       {skill}
                     </span>
@@ -413,43 +423,42 @@ export default function Home() {
                     <span className="text-xs text-slate-500 italic">No specific skill filters added</span>
                   )}
                 </div>
-                <div className="absolute right-[-10px] bottom-[-10px] w-20 h-20 bg-blue-500/5 rounded-full filter blur-xl" />
               </div>
 
               {/* KPI Summary Block */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Average Fit KPI */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden flex items-center gap-4 bg-slate-950/50">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shrink-0">
-                    <TrendingUp className="w-5.5 h-5.5" />
+                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
+                  <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-450 border border-slate-800 shrink-0">
+                    <TrendingUp className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Average Fit Score</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">{avgScore.toFixed(1)}%</h3>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Average Fit Score</span>
+                    <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{avgScore.toFixed(1)}%</h3>
                     <p className="text-[9px] text-slate-500 mt-0.5">Overall candidate relevance index</p>
                   </div>
                 </div>
 
                 {/* Top Match KPI */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden flex items-center gap-4 bg-slate-950/50">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shrink-0">
-                    <UserCheck className="w-5.5 h-5.5" />
+                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-500/5 flex items-center justify-center text-emerald-450 border border-slate-800 shrink-0">
+                    <UserCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Maximum Match Score</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">{maxScore.toFixed(0)}%</h3>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Maximum Match Score</span>
+                    <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{maxScore.toFixed(0)}%</h3>
                     <p className="text-[9px] text-slate-500 mt-0.5">Best fit prospective profile</p>
                   </div>
                 </div>
 
                 {/* Shortlist Funnel Yield */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden flex items-center gap-4 bg-slate-950/50">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shrink-0">
-                    <BookmarkCheck className="w-5.5 h-5.5" />
+                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
+                  <div className="w-12 h-12 rounded-lg bg-indigo-500/5 flex items-center justify-center text-indigo-455 border border-slate-800 shrink-0">
+                    <BookmarkCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Pipeline Yield</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Pipeline Yield</span>
+                    <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">
                       {totalCount > 0 ? ((shortlistCount / totalCount) * 100).toFixed(0) : 0}%
                     </h3>
                     <p className="text-[9px] text-slate-500 mt-0.5">{shortlistCount} of {totalCount} short-listed</p>
@@ -464,26 +473,45 @@ export default function Home() {
                     candidates={activeScreening.candidates} 
                     onSelectCandidate={handleSelectCandidate} 
                   />
-                ) : (
+                ) : activeTab === 'analytics' ? (
                   <DeepAnalysis 
                     candidates={activeScreening.candidates} 
                     requiredSkills={activeScreening.required_skills} 
+                  />
+                ) : (
+                  <PipelineBoard
+                    candidates={activeScreening.candidates}
+                    onUpdateCandidate={(updatedCand) => {
+                      if (activeId) {
+                        const updatedScreenings = screenings.map(sc => {
+                          if (sc.id === activeId) {
+                            return {
+                              ...sc,
+                              candidates: sc.candidates.map(c => c.candidate_id === updatedCand.candidate_id ? updatedCand : c)
+                            };
+                          }
+                          return sc;
+                        });
+                        setScreenings(updatedScreenings);
+                      }
+                    }}
+                    onSelectCandidate={handleSelectCandidate}
                   />
                 )}
               </div>
             </>
           ) : (
-            <div className="glass-panel rounded-3xl border border-white/5 py-32 flex flex-col items-center justify-center text-center max-w-3xl mx-auto shadow-2xl bg-white/[0.005]">
-              <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-500 mb-4">
+            <div className="rounded-xl border border-slate-800 py-32 flex flex-col items-center justify-center text-center max-w-3xl mx-auto shadow-2xl bg-[#0d1326]">
+              <div className="w-14 h-14 rounded-xl bg-[#080c18] border border-slate-850 flex items-center justify-center text-slate-500 mb-4">
                 <Users className="w-7 h-7" />
               </div>
               <h2 className="text-lg font-bold text-white tracking-wide">Ready for Talent Search</h2>
-              <p className="text-sm text-slate-400 mt-1 max-w-md">
+              <p className="text-sm text-slate-450 mt-1 max-w-md">
                 Launch a talent run to parse resume documents using advanced composite NLP rules.
               </p>
               <button
                 onClick={() => setIsNewScreeningOpen(true)}
-                className="glass-button-primary mt-6 px-6 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2"
+                className="glass-button-primary mt-6 px-6 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2"
               >
                 <span>Create Screening Run</span>
               </button>
@@ -502,53 +530,53 @@ export default function Home() {
 
         {/* Streaming Analysis Process Screen */}
         {isProcessing && (
-          <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-55 p-4">
-            <div className="glass-panel w-full max-w-2xl rounded-3xl p-8 border border-white/10 relative overflow-hidden flex flex-col gap-6 animate-slide-up shadow-[0_0_50px_rgba(59,130,246,0.15)]">
+          <div className="fixed inset-0 bg-[#060913]/95 backdrop-blur-sm flex items-center justify-center z-55 p-4">
+            <div className="w-full max-w-2xl rounded-xl p-8 border border-slate-800 relative overflow-hidden flex flex-col gap-6 animate-slide-up shadow-2xl bg-[#0d1326]">
               {/* Border accents */}
-              <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500" />
               
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shrink-0">
-                  <Terminal className="w-5.5 h-5.5 animate-pulse" />
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-450 border border-slate-800 shrink-0">
+                  <Terminal className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white tracking-wide">HireGrid.io Engine Active</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Streaming pipeline logs and scoring candidate profiles.</p>
+                  <p className="text-xs text-slate-450 mt-0.5">Streaming pipeline logs and scoring candidate profiles.</p>
                 </div>
               </div>
 
               {/* Progress visual bar */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-350">
                   <span>Match Progress</span>
                   <span>{processingProgress}%</span>
                 </div>
-                <div className="w-full h-2.5 rounded-full bg-slate-900 border border-white/5 p-[1px] overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#080c18] border border-slate-800 overflow-hidden">
                   <div 
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 transition-all duration-300"
+                    className="h-full rounded-full bg-blue-500 transition-all duration-300"
                     style={{ width: `${processingProgress}%` }}
                   />
                 </div>
               </div>
 
               {/* Log Feed Terminal */}
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pipeline Events</span>
-                <div className="h-44 rounded-2xl bg-slate-950 border border-white/5 p-4.5 font-mono text-[11px] leading-relaxed text-slate-400 overflow-y-auto space-y-1.5 flex flex-col-reverse shadow-inner">
+                <div className="h-44 rounded-xl bg-[#080c18] border border-slate-800 p-4.5 font-mono text-[11px] leading-relaxed text-slate-400 overflow-y-auto space-y-1.5 flex flex-col-reverse shadow-inner">
                   {processingLogs.slice().reverse().map((log, idx) => (
                     <div 
                       key={idx} 
                       className={`flex items-start gap-2 ${
                         log.startsWith('✓') 
-                          ? 'text-emerald-400' 
+                          ? 'text-emerald-450' 
                           : log.startsWith('✗') 
-                          ? 'text-red-400 font-bold' 
+                          ? 'text-red-450 font-bold' 
                           : log.includes('[') 
-                          ? 'text-blue-300' 
+                          ? 'text-blue-400' 
                           : 'text-slate-400'
                       }`}
                     >
-                      <span className="text-slate-600 shrink-0">&gt;</span>
+                      <span className="text-slate-650 shrink-0">&gt;</span>
                       <span className="break-all">{log}</span>
                     </div>
                   ))}

@@ -8,3 +8,4 @@ pdfplumber
 pytesseract
 Pillow
 python-dotenv
+psycopg2-binary

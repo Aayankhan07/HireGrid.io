@@ -155,10 +155,14 @@ async def google_login(payload: GoogleLogin):
     if allow_dev_bypass and (credential == "mock_google_jwt_token_bypass" or credential.startswith("mock_google_jwt_")):
         email = "demo.recruiter@hiregrid.io"
         name = "Demo Recruiter"
-        # Parse simulated payload if custom format is used: mock_google_jwt_email_name
+        # Parse simulated payload if custom format is used
         if "_" in credential:
             parts = credential.split("_")
-            if len(parts) >= 4:
+            if credential.startswith("mock_google_jwt_token_bypass_") and len(parts) >= 6:
+                email = parts[5]
+                if len(parts) >= 7:
+                    name = parts[6].replace("-", " ")
+            elif len(parts) >= 4:
                 email = parts[3]
                 if len(parts) >= 5:
                     name = parts[4].replace("-", " ")
@@ -479,7 +483,9 @@ async def analyze_resumes(
                     "languages": extracted["languages"],
                     "projects_count": len(extracted["projects"]),
                     "past_titles": extracted.get("past_titles", []),
-                    "projects": extracted.get("projects", [])
+                    "projects": extracted.get("projects", []),
+                    "email": extracted.get("email", ""),
+                    "phone": extracted.get("phone", "")
                 },
                 "summary": summary,
                 "audit_log": scoring.get("audit_log", {})
@@ -651,7 +657,9 @@ async def analyze_resumes_stream(
                         "languages": extracted["languages"],
                         "projects_count": len(extracted["projects"]),
                         "past_titles": extracted.get("past_titles", []),
-                        "projects": extracted.get("projects", [])
+                        "projects": extracted.get("projects", []),
+                        "email": extracted.get("email", ""),
+                        "phone": extracted.get("phone", "")
                     },
                     "summary": summary,
                     "audit_log": scoring.get("audit_log", {})

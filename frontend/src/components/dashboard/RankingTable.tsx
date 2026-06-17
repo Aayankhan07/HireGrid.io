@@ -22,9 +22,9 @@ export default function RankingTable({
   };
 
   const getProgressBarColor = (score: number) => {
-    if (score >= 80) return 'from-emerald-500 to-teal-400';
-    if (score >= 60) return 'from-blue-500 to-indigo-400';
-    return 'from-slate-500 to-slate-400';
+    if (score >= 80) return 'bg-emerald-500';
+    if (score >= 60) return 'bg-blue-500';
+    return 'bg-slate-500';
   };
 
   const handleExportCSV = () => {
@@ -73,12 +73,12 @@ export default function RankingTable({
         </div>
       </div>
 
-      {/* High Fidelity Glassmorphism Table Grid */}
-      <div className="glass-panel rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative">
+      {/* Table Grid */}
+      <div className="rounded-xl overflow-hidden border border-slate-800 shadow-2xl relative bg-[#0d1326]">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/5 text-[11px] font-bold text-slate-500 uppercase tracking-widest bg-slate-950/20">
+              <tr className="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-widest bg-[#060913]/30">
                 <th className="py-4.5 pl-6 pr-4 text-center w-16">Rank</th>
                 <th className="py-4.5 px-4 min-w-[200px]">Candidate Details</th>
                 <th className="py-4.5 px-4 w-[160px]">Match Score</th>
@@ -87,7 +87,7 @@ export default function RankingTable({
                 <th className="py-4.5 pr-6 pl-4 text-right w-12"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-800/60">
               {candidates.map((cand, idx) => {
                 const statusInfo = getStatus(cand.score);
                 const progressColor = getProgressBarColor(cand.score);
@@ -102,36 +102,32 @@ export default function RankingTable({
                   <tr
                     key={cand.candidate_id}
                     onClick={() => onSelectCandidate(cand)}
-                    className="group hover:bg-white/[0.02] cursor-pointer transition-colors duration-150"
+                    className="group hover:bg-[#080c18]/40 cursor-pointer transition-colors duration-150"
                   >
                     {/* Rank Circle */}
                     <td className="py-4.5 pl-6 pr-4 text-center">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${
                         idx === 0 
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.25)]' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                           : idx === 1 
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                          : 'bg-slate-900 border border-white/5 text-slate-400'
+                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                          : 'bg-slate-900 border border-slate-800 text-slate-400'
                       }`}>
                         {idx + 1}
                       </div>
                     </td>
 
                     {/* Candidate Identity Profile */}
-                    <td className="py-4.5 px-4">
+                    <td className="py-4.5 px-4 text-left">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 border border-white/10 ${
-                          idx === 0 
-                            ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white' 
-                            : 'bg-gradient-to-tr from-blue-600 to-indigo-500 text-white'
-                        }`}>
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-xs shrink-0 border border-slate-800 bg-slate-800 text-slate-200">
                           {initials}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors leading-tight truncate">
+                          <p className="text-sm font-semibold text-white group-hover:text-blue-450 transition-colors leading-tight truncate">
                             {cand.candidate_name}
                           </p>
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          <p className="text-[11px] text-slate-450 truncate mt-1">
                             {cand.extracted_info.education || 'Degree'} • {cand.extracted_info.experience_years || 0} YOE
                           </p>
                         </div>
@@ -139,14 +135,14 @@ export default function RankingTable({
                     </td>
 
                     {/* Match Score Display */}
-                    <td className="py-4.5 px-4">
+                    <td className="py-4.5 px-4 text-left">
                       <div className="space-y-1.5">
                         <div className="flex items-baseline justify-between text-xs font-bold text-white">
                           <span className="text-sm">{cand.score}%</span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden p-[1px]">
+                        <div className="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden">
                           <div 
-                            className={`h-full rounded-full bg-gradient-to-r ${progressColor}`}
+                            className={`h-full rounded-full ${progressColor}`}
                             style={{ width: `${cand.score}%` }}
                           />
                         </div>
@@ -166,13 +162,13 @@ export default function RankingTable({
                         {cand.matched_skills.slice(0, 3).map((skill, sIdx) => (
                           <span
                             key={sIdx}
-                            className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-900 border border-white/5 text-slate-300"
+                            className="px-2 py-1 rounded bg-[#080c18] border border-slate-800 text-[10px] font-medium text-slate-300"
                           >
                             {skill}
                           </span>
                         ))}
                         {cand.matched_skills.length > 3 && (
-                          <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-white/5 border border-white/5 text-slate-500">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[9px] font-bold text-slate-500">
                             +{cand.matched_skills.length - 3} more
                           </span>
                         )}
@@ -184,7 +180,7 @@ export default function RankingTable({
 
                     {/* Chevron trigger link */}
                     <td className="py-4.5 pr-6 pl-4 text-right">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 group-hover:text-white group-hover:bg-white/5 transition-all">
+                      <div className="w-7 h-7 rounded-md flex items-center justify-center text-slate-550 group-hover:text-white group-hover:bg-slate-800 transition-all">
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </td>

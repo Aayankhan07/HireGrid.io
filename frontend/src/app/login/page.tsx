@@ -66,6 +66,7 @@ export default function LoginPage() {
           // @ts-ignore
           google.accounts.id.initialize({
             client_id: googleClientId,
+            use_fedcm_for_prompt: false,
             callback: async (response: any) => {
               setError('');
               setSuccessMsg('');
@@ -127,35 +128,7 @@ export default function LoginPage() {
   const handleGoogleSignInClick = () => {
     setError('');
     setSuccessMsg('');
-    
-    // Check if standard Google client is fully primed
-    const isRealGoogleConfigured = googleClientId && 
-                                   !googleClientId.includes("placeholder") && 
-                                   !googleClientId.includes("YOUR_") && 
-                                   googleSdkLoaded;
-                                   
-    if (isRealGoogleConfigured) {
-      try {
-        setIsGoogleLoading(true);
-        // Trigger Standard Google Auth prompt natively
-        // @ts-ignore
-        google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // One Tap dialog blocked -> fall back to mock selector dialog for dev UX
-            console.log("One tap prompt was skipped or blocked. Displaying sandbox chooser.");
-            setIsGoogleLoading(false);
-            setShowMockGoogleDialog(true);
-          }
-        });
-      } catch (e) {
-        console.warn("Google native trigger failed. Loading developer dialog:", e);
-        setIsGoogleLoading(false);
-        setShowMockGoogleDialog(true);
-      }
-    } else {
-      // Launch developer sandboxed accounts dialog directly
-      setShowMockGoogleDialog(true);
-    }
+    setShowMockGoogleDialog(true);
   };
 
   const handleMockAccountSelect = async (mockEmail: string, mockName: string) => {
@@ -167,7 +140,7 @@ export default function LoginPage() {
     try {
       // Slugify name for token: spaces -> hyphens
       const nameSlug = mockName.trim().replace(/\s+/g, '-');
-      const mockToken = `mock_google_jwt_token_bypass_${mockEmail.trim()}_${nameSlug}`;
+      const mockToken = `mock_google_jwt_${mockEmail.trim()}_${nameSlug}`;
       await loginWithGoogle(mockToken);
     } catch (err: any) {
       setError(err.message || 'Mock Google Authentication failed.');
@@ -243,13 +216,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#020617] px-4 py-12 md:py-24 overflow-hidden">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#060913] px-4 py-12 md:py-24 overflow-hidden">
       {/* SaaS Grid Background Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35" />
-
-      {/* Background Decorative Glow Circles */}
-      <div className="neon-glow-blue top-[-10%] left-[-10%] scale-125" />
-      <div className="neon-glow-indigo bottom-[-15%] right-[-10%] scale-125" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0e1526_1px,transparent_1px),linear-gradient(to_bottom,#0e1526_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-40" />
 
       {/* Main SaaS Responsive Split Container */}
       <div className="w-full max-w-5xl z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center px-2">
@@ -258,34 +227,31 @@ export default function LoginPage() {
         <div className="lg:col-span-6 hidden lg:flex flex-col text-left text-white space-y-8 animate-fade-in pr-6">
           <div className="space-y-4">
             {/* Header Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-950/30 text-indigo-400 text-xs font-semibold tracking-wide backdrop-blur-md">
-              <BrainCircuit className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 text-xs font-semibold tracking-wide">
+              <BrainCircuit className="w-3.5 h-3.5 text-blue-500" />
               <span>Enterprise AI Recruitment</span>
             </div>
             
             <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight leading-[1.1] text-white">
               Screener & Analytics <br />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-blue-500 font-bold">
                 Accelerated by AI.
               </span>
             </h1>
-            <p className="text-slate-400 text-base max-w-md">
+            <p className="text-slate-400 text-sm max-w-md leading-relaxed">
               A high-precision talent parsing suite designed for modern HR enterprises. Automatically evaluate title hierarchies and skill densities instantly.
             </p>
           </div>
 
           {/* Premium Analytics Preview Widget */}
-          <div className="glass-panel p-6 rounded-2xl relative overflow-hidden border-white/5 bg-slate-950/40 shadow-2xl shadow-indigo-950/10">
-            {/* Glow Header Accent */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
-            
-            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-indigo-400 animate-spin" />
-                <span className="text-xs font-mono font-semibold tracking-wider text-indigo-400 uppercase">AI PARSING ENGINE</span>
+                <Cpu className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-mono font-semibold tracking-wider text-slate-400 uppercase">AI PARSING ENGINE</span>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/15 text-blue-400 text-[10px] font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                 ACTIVE
               </span>
             </div>
@@ -295,25 +261,25 @@ export default function LoginPage() {
               <div>
                 <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Semantic Skill Density</span>
-                  <span className="text-indigo-400 font-semibold font-mono">98% Match</span>
+                  <span className="text-blue-400 font-semibold font-mono">98% Match</span>
                 </div>
-                <div className="w-full bg-slate-900/80 rounded-full h-1.5 border border-white/5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full w-[98%]" />
+                <div className="w-full bg-slate-950 rounded-full h-1 overflow-hidden">
+                  <div className="bg-blue-500 h-1 rounded-full w-[98%]" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs text-slate-400 mb-1">
                   <span>Average Hierarchy Matching</span>
-                  <span className="text-indigo-400 font-semibold font-mono">92% Yield</span>
+                  <span className="text-blue-400 font-semibold font-mono">92% Yield</span>
                 </div>
-                <div className="w-full bg-slate-900/80 rounded-full h-1.5 border border-white/5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full w-[92%]" />
+                <div className="w-full bg-slate-950 rounded-full h-1 overflow-hidden">
+                  <div className="bg-blue-500 h-1 rounded-full w-[92%]" />
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
               <span>Top Active Role: Principal Architect</span>
               <span className="text-slate-400">Score 94.8%</span>
             </div>
@@ -321,51 +287,49 @@ export default function LoginPage() {
 
           {/* Trust bullet points */}
           <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm text-slate-300">
-              <div className="w-5 h-5 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
-                <BarChart3 className="w-3 h-3 text-indigo-400" />
+            <div className="flex items-center gap-3 text-sm text-slate-350">
+              <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800 shrink-0">
+                <BarChart3 className="w-3 h-3 text-slate-400" />
               </div>
               <span>Real-time SSE Streaming parsing technology</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-300">
-              <div className="w-5 h-5 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
-                <ShieldCheck className="w-3 h-3 text-indigo-400" />
+            <div className="flex items-center gap-3 text-sm text-slate-355">
+              <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800 shrink-0">
+                <ShieldCheck className="w-3 h-3 text-slate-400" />
               </div>
               <span>OWASP-compliant native cryptographic protections</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: The Sliding Glassmorphic Login/Signup Form */}
+        {/* Right Side: The Sliding Form */}
         <div className="lg:col-span-6 flex justify-center w-full animate-slide-up">
           <div className="w-full max-w-md relative">
             
             {/* Visual Logo Container for Mobile & Visual Hierarchy */}
             <div className="flex flex-col items-center mb-8 text-center lg:hidden">
               <h1 className="text-4xl font-extrabold tracking-wider text-white">
-                Hire<span className="text-blue-400">Grid</span><span className="text-slate-500">.io</span>
+                Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
               </h1>
               <p className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-3 font-semibold">Enterprise Talent Screener & Analytics</p>
             </div>
 
             {/* Premium Interactive Login Card */}
-            <div className="glass-panel rounded-3xl p-8 relative overflow-hidden shadow-[0_20px_50px_rgba(8,12,36,0.5)] border-white/10 bg-slate-950/70 backdrop-blur-2xl transition-all duration-500">
-              {/* Top Accent Light Beam */}
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-indigo-500" />
+            <div className="glass-panel rounded-2xl p-8 relative overflow-hidden shadow-[0_20px_50px_rgba(8,12,36,0.5)] border border-slate-800 bg-[#0d1326] backdrop-blur-2xl transition-all duration-500">
               
               {/* Brand Indicator (Desktop Header inside the card) */}
-              <div className="hidden lg:flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-                <h1 className="text-xl font-bold tracking-wider text-white">
-                  Hire<span className="text-blue-400">Grid</span><span className="text-slate-500">.io</span>
+              <div className="hidden lg:flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
+                <h1 className="text-lg font-bold tracking-tight text-white">
+                  Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
                 </h1>
                 <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-semibold">SECURE ACCESS</span>
               </div>
 
               {/* Tab Selector Buttons */}
-              <div className="relative flex p-1 mb-8 bg-slate-900/60 rounded-xl border border-white/5 backdrop-blur-md">
+              <div className="relative flex p-1 mb-8 bg-slate-950 rounded-xl border border-slate-800/80 backdrop-blur-md">
                 {/* Sliding indicator */}
                 <div 
-                  className={`absolute top-1 bottom-1 rounded-lg bg-gradient-to-r from-blue-600/90 to-indigo-600/90 transition-all duration-300 shadow-md ${
+                  className={`absolute top-1 bottom-1 rounded-lg bg-blue-600 transition-all duration-300 shadow-md ${
                     activeTab === 'signin' 
                       ? 'left-1 w-[calc(50%-4px)]' 
                       : 'left-[calc(50%+2px)] w-[calc(50%-4px)]'
@@ -392,7 +356,7 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <h2 className="text-xl font-bold text-white mb-6">
+              <h2 className="text-lg font-bold text-white mb-6">
                 {activeTab === 'signin' ? 'Authenticate Dashboard' : 'Create Enterprise Account'}
               </h2>
 
@@ -471,22 +435,22 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="glass-button-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 mt-8 relative overflow-hidden group shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-transform cursor-pointer disabled:opacity-85"
+                    className="glass-button-primary w-full py-3 rounded-lg flex items-center justify-center gap-2 mt-8 relative overflow-hidden active:scale-[0.98] transition-all cursor-pointer disabled:opacity-85"
                   >
                     {loading ? (
                       <>
                         {/* Premium Sliding Progress Bar */}
-                        <div className="absolute bottom-0 left-0 h-[3px] w-full bg-slate-950/40 overflow-hidden" suppressHydrationWarning>
-                          <div className="h-full w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-400 animate-loading-bar" />
+                        <div className="absolute bottom-0 left-0 h-[3px] w-full bg-slate-900 overflow-hidden" suppressHydrationWarning>
+                          <div className="h-full w-full bg-blue-600 animate-loading-bar" />
                         </div>
                         <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin shrink-0" />
                         <span className="font-semibold tracking-wide text-slate-100 animate-pulse">Verifying Credentials...</span>
                       </>
                     ) : (
                       <>
-                        <LogIn className="w-4.5 h-4.5 group-hover:translate-x-0.5 transition-transform" />
+                        <LogIn className="w-4.5 h-4.5" />
                         <span>Log in</span>
-                        <ChevronRight className="w-4 h-4 ml-0.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="w-4 h-4 ml-0.5 opacity-60" />
                       </>
                     )}
                   </button>
@@ -494,16 +458,16 @@ export default function LoginPage() {
                   {/* Visual Divider */}
                   <div className="relative my-5 flex items-center justify-center">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/5"></div>
+                      <div className="w-full border-t border-slate-800"></div>
                     </div>
-                    <span className="relative px-3.5 bg-[#0a0f28] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
+                    <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleGoogleSignInClick}
                     disabled={loading || isGoogleLoading}
-                    className="w-full py-3.5 rounded-xl flex items-center justify-center gap-2.5 transition-all cursor-pointer border border-white/10 hover:border-white/20 bg-slate-900/40 hover:bg-slate-900/80 shadow-md disabled:opacity-80 active:scale-[0.98]"
+                    className="w-full py-3 rounded-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 shadow-md disabled:opacity-80 active:scale-[0.98]"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -595,7 +559,7 @@ export default function LoginPage() {
                       <select
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
-                        className="glass-input w-full py-3.5 px-4 text-sm cursor-pointer appearance-none bg-[#070b1e] border-white/8 hover:border-white/15 focus:border-blue-500 pr-10"
+                        className="glass-input w-full py-3.5 px-4 text-sm cursor-pointer appearance-none bg-[#070b1e] border border-slate-800 hover:border-slate-700 focus:border-blue-500 pr-10"
                       >
                         <option value="Recruitment Lead">Recruitment Lead</option>
                         <option value="Recruitment Director">Recruitment Director</option>
@@ -612,22 +576,22 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="glass-button-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 mt-8 relative overflow-hidden group shadow-lg shadow-indigo-500/10 active:scale-[0.98] transition-transform cursor-pointer disabled:opacity-85"
+                    className="glass-button-primary w-full py-3 rounded-lg flex items-center justify-center gap-2 mt-8 relative overflow-hidden active:scale-[0.98] transition-all cursor-pointer disabled:opacity-85"
                   >
                     {loading ? (
                       <>
                         {/* Premium Sliding Progress Bar */}
-                        <div className="absolute bottom-0 left-0 h-[3px] w-full bg-slate-950/40 overflow-hidden" suppressHydrationWarning>
-                          <div className="h-full w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-400 animate-loading-bar" />
+                        <div className="absolute bottom-0 left-0 h-[3px] w-full bg-slate-900 overflow-hidden" suppressHydrationWarning>
+                          <div className="h-full w-full bg-blue-600 animate-loading-bar" />
                         </div>
                         <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin shrink-0" />
                         <span className="font-semibold tracking-wide text-slate-100 animate-pulse">Creating Account...</span>
                       </>
                     ) : (
                       <>
-                        <UserPlus className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
+                        <UserPlus className="w-4.5 h-4.5" />
                         <span>Create Enterprise Account</span>
-                        <ChevronRight className="w-4 h-4 ml-0.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="w-4 h-4 ml-0.5 opacity-60" />
                       </>
                     )}
                   </button>
@@ -635,16 +599,16 @@ export default function LoginPage() {
                   {/* Visual Divider */}
                   <div className="relative my-5 flex items-center justify-center">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/5"></div>
+                      <div className="w-full border-t border-slate-800"></div>
                     </div>
-                    <span className="relative px-3.5 bg-[#0a0f28] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
+                    <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleGoogleSignInClick}
                     disabled={loading || isGoogleLoading}
-                    className="w-full py-3.5 rounded-xl flex items-center justify-center gap-2.5 transition-all cursor-pointer border border-white/10 hover:border-white/20 bg-slate-900/40 hover:bg-slate-900/80 shadow-md disabled:opacity-80 active:scale-[0.98]"
+                    className="w-full py-3 rounded-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 shadow-md disabled:opacity-80 active:scale-[0.98]"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -673,9 +637,7 @@ export default function LoginPage() {
       {/* High-Fidelity Google Accounts Identity Simulator Modal */}
       {showMockGoogleDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in text-left">
-          <div className="w-full max-w-sm rounded-2xl bg-[#0b0f19] border border-white/10 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative animate-scale-up">
-            {/* Colored Top Accent Bar */}
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-red-500 via-yellow-500 to-emerald-500" />
+          <div className="w-full max-w-sm rounded-2xl bg-[#0d1326] border border-slate-800 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative animate-scale-up">
             
             {/* Close Button */}
             <button
@@ -701,13 +663,13 @@ export default function LoginPage() {
 
             {/* Real Google Account Live Button (Dynamic Container) */}
             {googleClientId && !googleClientId.includes("placeholder") && !googleClientId.includes("YOUR_") && (
-              <div className="mb-5 pb-5 border-b border-white/5 flex flex-col items-center">
+              <div className="mb-5 pb-5 border-b border-slate-800 flex flex-col items-center">
                 <div id="google-live-btn-container" className="w-full flex justify-center"></div>
                 <div className="relative w-full flex items-center justify-center mt-5">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/5"></div>
+                    <div className="w-full border-t border-slate-800"></div>
                   </div>
-                  <span className="relative px-3.5 bg-[#0b0f19] text-[8px] font-bold text-slate-500 uppercase tracking-widest">Or Use Sandbox Bypass</span>
+                  <span className="relative px-3.5 bg-[#0d1326] text-[8px] font-bold text-slate-500 uppercase tracking-widest">Or Use Sandbox Bypass</span>
                 </div>
               </div>
             )}
@@ -718,42 +680,42 @@ export default function LoginPage() {
                 {/* Account AS */}
                 <button
                   onClick={() => handleMockAccountSelect('admin@hiregrid.io', 'Alex Sterling')}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/80 hover:border-white/10 transition-all text-left cursor-pointer group"
+                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8.5 h-8.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-8.5 h-8.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">
                       AS
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-white block group-hover:text-blue-400 transition-colors">Alex Sterling</span>
+                      <span className="text-xs font-semibold text-white block group-hover:text-blue-500 transition-colors">Alex Sterling</span>
                       <span className="text-[10px] text-slate-500">admin@hiregrid.io</span>
                     </div>
                   </div>
-                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/10 uppercase">SEED ADMIN</span>
+                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase">SEED ADMIN</span>
                 </button>
 
                 {/* Account SL */}
                 <button
                   onClick={() => handleMockAccountSelect('sarah.lin@hiregrid.io', 'Sarah Lin')}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-white/5 bg-slate-900/30 hover:bg-slate-900/80 hover:border-white/10 transition-all text-left cursor-pointer group"
+                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 transition-all text-left cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8.5 h-8.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-8.5 h-8.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">
                       SL
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-white block group-hover:text-blue-400 transition-colors">Sarah Lin</span>
+                      <span className="text-xs font-semibold text-white block group-hover:text-blue-500 transition-colors">Sarah Lin</span>
                       <span className="text-[10px] text-slate-500">sarah.lin@hiregrid.io</span>
                     </div>
                   </div>
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-white/5 uppercase">ENGINEER</span>
+                  <span className="text-[9px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 uppercase">ENGINEER</span>
                 </button>
 
                 {/* Add Custom Account */}
                 <button
                   type="button"
                   onClick={() => setUseCustomMock(true)}
-                  className="w-full py-3 rounded-xl border border-dashed border-white/10 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all text-center text-xs font-semibold text-indigo-400 cursor-pointer"
+                  className="w-full py-3 rounded-xl border border-dashed border-slate-800 hover:border-slate-700 bg-transparent hover:bg-white/[0.01] transition-all text-center text-xs font-semibold text-slate-450 cursor-pointer"
                 >
                   + Use Another Account
                 </button>
@@ -768,7 +730,7 @@ export default function LoginPage() {
                     value={customMockName}
                     onChange={(e) => setCustomMockName(e.target.value)}
                     placeholder="Jane Doe"
-                    className="glass-input w-full py-2.5 px-3 text-xs bg-slate-950 border-white/8 hover:border-white/12"
+                    className="glass-input w-full py-2.5 px-3 text-xs bg-slate-950 border border-slate-800"
                   />
                 </div>
                 <div>
@@ -779,7 +741,7 @@ export default function LoginPage() {
                     value={customMockEmail}
                     onChange={(e) => setCustomMockEmail(e.target.value)}
                     placeholder="jane.doe@company.com"
-                    className="glass-input w-full py-2.5 px-3 text-xs bg-slate-950 border-white/8 hover:border-white/12"
+                    className="glass-input w-full py-2.5 px-3 text-xs bg-slate-950 border border-slate-800"
                   />
                 </div>
 
@@ -787,7 +749,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setUseCustomMock(false)}
-                    className="flex-1 py-2.5 rounded-lg border border-white/5 bg-slate-900/40 text-slate-300 text-xs font-semibold hover:bg-slate-900 hover:text-white cursor-pointer"
+                    className="flex-1 py-2.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 text-xs font-semibold hover:bg-slate-900 hover:text-white cursor-pointer"
                   >
                     Back
                   </button>
@@ -800,7 +762,7 @@ export default function LoginPage() {
                         alert("Please provide a valid mock name and email.");
                       }
                     }}
-                    className="flex-1 py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 cursor-pointer"
+                    className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 cursor-pointer"
                   >
                     Authorize
                   </button>
@@ -809,8 +771,8 @@ export default function LoginPage() {
             )}
 
             {/* Sandbox Developer Tip */}
-            <div className="mt-5 pt-4 border-t border-white/5 text-[9px] text-slate-500 leading-relaxed">
-              <span className="font-semibold block text-indigo-400 mb-0.5">⚙️ Local Bypass Environment</span>
+            <div className="mt-5 pt-4 border-t border-slate-800 text-[9px] text-slate-500 leading-relaxed">
+              <span className="font-semibold block text-slate-400 mb-0.5">⚙️ Local Bypass Environment</span>
               Google Authentication is running in simulated sandbox mode. To switch to live production Google Login, configure <code className="bg-slate-950 px-1 py-0.5 rounded text-slate-400 font-mono">NEXT_PUBLIC_GOOGLE_CLIENT_ID</code>.
             </div>
 

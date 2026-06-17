@@ -1,5 +1,7 @@
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import os
+import json
 from dotenv import load_dotenv
 
 # Load environment configuration
@@ -9,11 +11,12 @@ if os.path.exists(parent_env):
 else:
     load_dotenv()
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "hiregrid_io.db")
+DB_URL = os.environ.get("DATABASE_URL")
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    if not DB_URL:
+        raise ValueError("DATABASE_URL environment variable is not set!")
+    conn = psycopg2.connect(DB_URL)
     return conn
 
 def init_db():
@@ -24,7 +27,7 @@ def init_db():
     # Create users table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
         name TEXT NOT NULL,
         password_hash TEXT NOT NULL,
@@ -75,17 +78,17 @@ def init_db():
     
     # Seed default admin user if not exists
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@hiregrid.io").strip().lower()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (admin_email,))
+    cursor.execute("SELECT * FROM users WHERE email = %s", (admin_email,))
     admin = cursor.fetchone()
     if not admin:
-        admin_pass = os.environ.get("ADMIN_PASSWORD", "pass" + "word123")
-        if admin_pass == "pass" + "word123":
+        admin_pass = os.environ.get("ADMIN_PASSWORD", "password123")
+        if admin_pass == "password123":
             import logging
             logging.warning("SECURITY WARNING: Using default admin password. Change ADMIN_PASSWORD in your .env file!")
         
         h_hash, h_salt = hash_password(admin_pass)
         cursor.execute(
-            "INSERT INTO users (email, name, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO users (email, name, password_hash, password_salt, role) VALUES (%s, %s, %s, %s, %s)",
             (admin_email, "Alex Sterling", h_hash, h_salt, "Recruitment Director")
         )
         conn.commit()
@@ -93,49 +96,50 @@ def init_db():
     else:
         print("Database already initialized.")
     
+    cursor.close()
     conn.close()
 
 def db_get_user_by_email(email: str):
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM users WHERE email = %s", (email.strip().lower(),))
     user = cursor.fetchone()
+    cursor.close()
     conn.close()
-    if user:
-        return dict(user)
-    return None
+    return dict(user) if user else None
 
 def db_create_user(email: str, name: str, password_hash: str, password_salt: str, role: str):
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(
-            "INSERT INTO users (email, name, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO users (email, name, password_hash, password_salt, role) VALUES (%s, %s, %s, %s, %s) RETURNING id",
             (email.strip().lower(), name.strip(), password_hash, password_salt, role.strip())
         )
+        user_id = cursor.fetchone()["id"]
         conn.commit()
-        user_id = cursor.lastrowid
-        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
         new_user = cursor.fetchone()
+        cursor.close()
         conn.close()
         return dict(new_user) if new_user else None
-    except sqlite3.IntegrityError:
+    except Exception as e:
+        print(f"Error creating user: {e}")
+        cursor.close()
         conn.close()
         return None
 
-import json
-
 def db_get_screenings_by_user(email: str) -> list:
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM screenings WHERE user_email = ? ORDER BY created_at DESC", (email.strip().lower(),))
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM screenings WHERE user_email = %s ORDER BY created_at DESC", (email.strip().lower(),))
     screenings = cursor.fetchall()
     
     results = []
     for sc in screenings:
         sc_dict = dict(sc)
         # Fetch candidates for this screening
-        cursor.execute("SELECT * FROM candidates WHERE screening_id = ? ORDER BY score DESC", (sc_dict["id"],))
+        cursor.execute("SELECT * FROM candidates WHERE screening_id = %s ORDER BY score DESC", (sc_dict["id"],))
         candidates = cursor.fetchall()
         
         cands_list = []
@@ -165,24 +169,26 @@ def db_get_screenings_by_user(email: str) -> list:
             "job_title": sc_dict["job_title"],
             "job_description": sc_dict["job_description"],
             "required_skills": [s.strip() for s in sc_dict["required_skills"].split(",") if s.strip()] if sc_dict["required_skills"] else [],
-            "date": sc_dict["created_at"],
+            "date": str(sc_dict["created_at"]),
             "candidates": cands_list,
             "total_candidates": len(cands_list)
         })
+    cursor.close()
     conn.close()
     return results
 
 def db_get_screening_details(screening_id: str, email: str) -> dict:
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM screenings WHERE id = ? AND user_email = ?", (screening_id, email.strip().lower()))
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM screenings WHERE id = %s AND user_email = %s", (screening_id, email.strip().lower()))
     sc = cursor.fetchone()
     if not sc:
+        cursor.close()
         conn.close()
         return None
     
     sc_dict = dict(sc)
-    cursor.execute("SELECT * FROM candidates WHERE screening_id = ? ORDER BY score DESC", (screening_id,))
+    cursor.execute("SELECT * FROM candidates WHERE screening_id = %s ORDER BY score DESC", (screening_id,))
     candidates = cursor.fetchall()
     cands_list = []
     for c in candidates:
@@ -206,13 +212,14 @@ def db_get_screening_details(screening_id: str, email: str) -> dict:
             "notes": c_dict["notes"]
         })
     
+    cursor.close()
     conn.close()
     return {
         "id": sc_dict["id"],
         "job_title": sc_dict["job_title"],
         "job_description": sc_dict["job_description"],
         "required_skills": [s.strip() for s in sc_dict["required_skills"].split(",") if s.strip()] if sc_dict["required_skills"] else [],
-        "date": sc_dict["created_at"],
+        "date": str(sc_dict["created_at"]),
         "candidates": cands_list,
         "total_candidates": len(cands_list)
     }
@@ -222,13 +229,16 @@ def db_create_screening(sc_id: str, email: str, job_title: str, job_desc: str, r
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO screenings (id, user_email, job_title, job_description, required_skills) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO screenings (id, user_email, job_title, job_description, required_skills) VALUES (%s, %s, %s, %s, %s)",
             (sc_id, email.strip().lower(), job_title.strip(), job_desc.strip(), req_skills.strip())
         )
         conn.commit()
+        cursor.close()
         conn.close()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Error creating screening: {e}")
+        cursor.close()
         conn.close()
         return False
 
@@ -241,16 +251,18 @@ def db_create_candidate(cand_id: str, screening_id: str, name: str, filename: st
         cursor.execute(
             """INSERT INTO candidates (id, screening_id, candidate_name, candidate_filename, file_path, score, 
                skills_score, semantic_score, experience_score, yoe, location, matched_skills, missing_skills, summary, details_json) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             (cand_id, screening_id, name, filename, file_path, score, 
              breakdown.get("skills", 0.0), breakdown.get("semantic_similarity", 0.0), breakdown.get("experience", 0.0),
              yoe, loc, matched_str, missing_str, summary, details_json)
         )
         conn.commit()
+        cursor.close()
         conn.close()
         return True
     except Exception as e:
         print(f"Error inserting candidate: {e}")
+        cursor.close()
         conn.close()
         return False
 
@@ -258,11 +270,14 @@ def db_update_candidate_status(cand_id: str, status: str) -> bool:
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE candidates SET status = ? WHERE id = ?", (status, cand_id))
+        cursor.execute("UPDATE candidates SET status = %s WHERE id = %s", (status, cand_id))
         conn.commit()
+        cursor.close()
         conn.close()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Error updating status: {e}")
+        cursor.close()
         conn.close()
         return False
 
@@ -270,38 +285,45 @@ def db_update_candidate_notes(cand_id: str, notes: str) -> bool:
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE candidates SET notes = ? WHERE id = ?", (notes, cand_id))
+        cursor.execute("UPDATE candidates SET notes = %s WHERE id = %s", (notes, cand_id))
         conn.commit()
+        cursor.close()
         conn.close()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Error updating notes: {e}")
+        cursor.close()
         conn.close()
         return False
 
 def db_delete_screening(screening_id: str, email: str) -> bool:
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         # First verify it belongs to the user
-        cursor.execute("SELECT id FROM screenings WHERE id = ? AND user_email = ?", (screening_id, email.strip().lower()))
+        cursor.execute("SELECT id FROM screenings WHERE id = %s AND user_email = %s", (screening_id, email.strip().lower()))
         if not cursor.fetchone():
+            cursor.close()
             conn.close()
             return False
             
-        cursor.execute("DELETE FROM screenings WHERE id = ?", (screening_id,))
-        cursor.execute("DELETE FROM candidates WHERE screening_id = ?", (screening_id,))
+        cursor.execute("DELETE FROM screenings WHERE id = %s", (screening_id,))
+        cursor.execute("DELETE FROM candidates WHERE screening_id = %s", (screening_id,))
         conn.commit()
+        cursor.close()
         conn.close()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Error deleting screening: {e}")
+        cursor.close()
         conn.close()
         return False
 
 def db_get_candidate_by_id(cand_id: str) -> dict:
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM candidates WHERE id = ?", (cand_id,))
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM candidates WHERE id = %s", (cand_id,))
     c = cursor.fetchone()
+    cursor.close()
     conn.close()
     return dict(c) if c else None
-

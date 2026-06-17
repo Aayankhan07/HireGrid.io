@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
-
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
   title: "HireGrid.io — Enterprise AI Resume Screener",
-  description: "Next-gen glassmorphic recruitment analytics portal.",
+  description: "Next-gen recruitment analytics portal.",
 };
 
 export default function RootLayout({
@@ -28,10 +22,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${jakarta.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[#020617] text-[#f8fafc]" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-[#060913] text-[#f8fafc]" suppressHydrationWarning>
         <AuthProvider>
           {children}
         </AuthProvider>

@@ -512,8 +512,6 @@ export default function LandingPage() {
     }
   }, [activeLogs]);
 
-  function suppressCustomHooksLintErrorIfAny() {}
-
   // Sync logs when template key changes and we are NOT actively simulating
   useEffect(() => {
     if (!isSimulating) {
@@ -550,35 +548,31 @@ export default function LandingPage() {
     .sort((a, b) => b.liveScore - a.liveScore);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#020617] text-[#f8fafc] overflow-x-hidden flex flex-col font-sans">
+    <div className="relative min-h-screen w-full bg-[#060913] text-[#f8fafc] overflow-x-hidden flex flex-col font-sans">
       {/* Scroll Progress Bar */}
       <div 
-        className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 z-[100] transition-all duration-100 ease-out" 
+        className="fixed top-0 left-0 h-[3px] bg-blue-500 z-[100] transition-all duration-100 ease-out" 
         style={{ width: `${scrollProgress}%` }}
       />
 
       {/* SaaS Grid Background Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35 z-0 pointer-events-none" suppressHydrationWarning />
-
-      {/* Decorative Glow Circles */}
-      <div className="neon-glow-blue top-[-5%] left-[-10%] scale-150" suppressHydrationWarning />
-      <div className="neon-glow-indigo bottom-[10%] right-[-10%] scale-150" suppressHydrationWarning />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0e1526_1px,transparent_1px),linear-gradient(to_bottom,#0e1526_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 z-0 pointer-events-none" suppressHydrationWarning />
 
       {/* Premium Navbar */}
-      <header className="w-full border-b border-white/5 bg-slate-950/20 backdrop-blur-md sticky top-0 z-50">
+      <header className="w-full border-b border-slate-800 bg-[#060913]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
-              <BrainCircuit className="w-5 h-5 text-white" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8.5 h-8.5 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 shadow-inner">
+              <BrainCircuit className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-xl font-extrabold tracking-wider text-white">
-              Hire<span className="text-blue-400">Grid</span><span className="text-slate-500">.io</span>
+            <span className="text-lg font-bold tracking-tight text-white">
+              Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
             </span>
           </Link>
 
           {/* Navigation links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-400">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a href="#features" className="hover:text-slate-100 transition-colors">Platform Pillars</a>
             <a href="#demo" className="hover:text-slate-100 transition-colors">AI Preview</a>
             <a href="#pricing" className="hover:text-slate-100 transition-colors">Pricing Options</a>
@@ -590,7 +584,7 @@ export default function LandingPage() {
               user ? (
                 <Link 
                   href="/dashboard" 
-                  className="glass-button-primary px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide flex items-center gap-1.5 active:scale-[0.98] transition-all"
+                  className="glass-button-primary px-4.5 py-2 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 transition-all"
                 >
                   <span>Go to Dashboard</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -599,13 +593,13 @@ export default function LandingPage() {
                 <>
                   <Link 
                     href="/login" 
-                    className="text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors"
+                    className="text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
                   >
                     Corporate Login
                   </Link>
                   <Link 
                     href="/login" 
-                    className="glass-button px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide border-white/10 hover:bg-slate-900/60 transition-all"
+                    className="glass-button px-4.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all"
                   >
                     Get Started Free
                   </Link>
@@ -621,90 +615,87 @@ export default function LandingPage() {
         
         {/* Section 1: Hero Banner */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          <div className="lg:col-span-6 flex flex-col text-left space-y-8 animate-fade-in pr-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-950/20 text-blue-300 text-xs font-semibold tracking-wide backdrop-blur-md w-fit">
-              <Sparkles className="w-3 h-3 text-blue-400" />
+          <div className="lg:col-span-6 flex flex-col text-left space-y-7 animate-fade-in pr-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 text-xs font-medium tracking-wide w-fit">
+              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
               <span>Next-Gen Resume Screener</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.08] text-white">
+            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
               AI Talent Analytics <br />
-              <span className="text-blue-400 font-black tracking-tight">
+              <span className="text-blue-500 font-bold">
                 With Extreme Precision.
               </span>
             </h1>
             
-            <p className="text-slate-400 text-base max-w-lg leading-relaxed">
+            <p className="text-slate-400 text-sm max-w-lg leading-relaxed">
               HireGrid.io parses raw candidate PDF resumes instantly using advanced NLP semantic layers. Automatically grade candidate skill density, experience alignment, and corporate titles.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
               <Link 
                 href={user ? "/dashboard" : "/login"} 
-                className="w-full sm:w-auto glass-button-primary px-8 py-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold tracking-wide hover:shadow-indigo-500/10 active:scale-[0.98] transition-transform"
+                className="w-full sm:w-auto glass-button-primary px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all"
               >
                 <span>{user ? "Enter Recruitment Portal" : "Start Screening Free"}</span>
-                <ArrowRight className="w-4 h-4 ml-0.5" />
+                <ArrowRight className="w-4 h-4" />
               </Link>
               <a 
                 href="#demo"
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/5 bg-slate-900/40 hover:bg-slate-900/80 hover:border-white/10 text-slate-300 text-sm font-semibold transition-all text-center"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/80 hover:border-slate-700 text-slate-300 text-sm font-semibold transition-all text-center"
               >
                 See Live Simulation
               </a>
             </div>
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/5 max-w-md">
+            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-800 max-w-md">
               <div>
-                <span className="text-2xl font-extrabold text-white block">98%</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Parsing Yield</span>
+                <span className="text-xl font-extrabold text-white block">98%</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Parsing Yield</span>
               </div>
               <div>
-                <span className="text-2xl font-extrabold text-white block">&lt;2s</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Analysis Time</span>
+                <span className="text-xl font-extrabold text-white block">&lt;2s</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Analysis Time</span>
               </div>
               <div>
-                <span className="text-2xl font-extrabold text-white block">OAuth</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Secure Logins</span>
+                <span className="text-xl font-extrabold text-white block">OAuth</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Secure Logins</span>
               </div>
             </div>
           </div>
 
-          {/* Right Side: Interactive AI Preview Mockup widget */}
+          {/* Right Side: High-fidelity Candidate Board mockup */}
           <div className="lg:col-span-6 animate-slide-up">
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden border-white/10 bg-slate-950/70 shadow-2xl shadow-indigo-950/10">
-              {/* Glow Accent Line */}
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-              
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                  <Cpu className="w-4.5 h-4.5 text-indigo-400 animate-spin" />
-                  <span className="text-xs font-mono font-bold tracking-wider text-indigo-400 uppercase">AI ANALYZER TERMINAL</span>
-                </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  PIPELINE ONLINE
+            <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-800 bg-[#0d1326] shadow-2xl relative">
+              <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-800">
+                <span className="text-xs font-semibold tracking-tight text-slate-200">Matching Pipeline</span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-medium">
+                  Active Run
                 </span>
               </div>
 
-              {/* Mock Screenings List Preview */}
-              <div className="space-y-6 text-left">
+              <div className="space-y-4 text-left">
                 {/* Mock Card 1 */}
-                <div className="glass-card p-4 rounded-xl relative border-white/10 bg-slate-900/20">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div>
-                      <span className="text-xs font-bold text-white">Alex McKinney</span>
-                      <span className="text-[10px] text-slate-500 block leading-tight">alex_mckinney_cv.pdf</span>
+                <div className="bg-[#080c18] p-4 rounded-xl border border-slate-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                        AM
+                      </div>
+                      <div>
+                        <span className="text-xs font-semibold text-white block">Alex McKinney</span>
+                        <span className="text-[10px] text-slate-500 block">Lead Software Engineer • Remote</span>
+                      </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-base font-extrabold text-emerald-400 block font-mono">{animatedScore}%</span>
-                      <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/10 px-1.5 py-0.5 rounded uppercase font-semibold">HIGH FIT</span>
+                      <span className="text-xs font-bold text-emerald-400 block font-mono">{animatedScore}%</span>
+                      <span className="text-[9px] text-emerald-500 font-semibold uppercase tracking-wider">Shortlist</span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-950 rounded-full h-1.5 border border-white/5 overflow-hidden">
+                  <div className="w-full bg-slate-950 rounded-full h-1 overflow-hidden mt-3">
                     <div 
-                      className="bg-gradient-to-r from-emerald-500 to-teal-400 h-1.5 rounded-full transition-all duration-1000 ease-out" 
+                      className="bg-emerald-500 h-1 rounded-full transition-all duration-1000 ease-out" 
                       style={{ width: `${animatedScore}%` }}
                     />
                   </div>
@@ -716,19 +707,30 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Mock Log Terminal Area */}
-                <div className="rounded-xl bg-slate-950 border border-white/5 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5">
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-slate-600">&gt;</span>
-                    <span>Extracting entities from resume: <span className="text-indigo-400">sarah_lin_cv.pdf</span></span>
+                {/* Mock Card 2 */}
+                <div className="bg-[#080c18] p-4 rounded-xl border border-slate-800 opacity-80">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20">
+                        SL
+                      </div>
+                      <div>
+                        <span className="text-xs font-semibold text-white block">Sarah Lin</span>
+                        <span className="text-[10px] text-slate-500 block">Frontend Developer • SF</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-bold text-slate-300 block font-mono">68%</span>
+                      <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Review</span>
+                    </div>
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-slate-600">&gt;</span>
-                    <span>Running zero-skill intersection checks... <span className="text-emerald-400">Passed</span></span>
+                  <div className="w-full bg-slate-950 rounded-full h-1 overflow-hidden mt-3">
+                    <div className="bg-blue-500 h-1 rounded-full w-[68%]" />
                   </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-slate-600">&gt;</span>
-                    <span>Comparing job description semantic match: <span className="text-indigo-300 font-bold">88.5% similarity</span></span>
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-frontend">React</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-frontend">TypeScript</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded font-semibold badge-general">+2 more</span>
                   </div>
                 </div>
               </div>
@@ -739,7 +741,7 @@ export default function LandingPage() {
         {/* Section 2: Core Platform Pillars (Pillars Grid) */}
         <section id="features" className="space-y-16 pt-8">
           <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 border border-blue-500/10 px-3 py-1 rounded-md">CORE TECHNOLOGY</span>
+            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/15 px-3 py-1 rounded-md">CORE TECHNOLOGY</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Accelerate Your Enterprise Hiring Funnel</h2>
             <p className="text-slate-400 text-sm">
               We leverage multi-stage parsing systems to identify, classify, and match the most relevant corporate talent instantly.
@@ -747,23 +749,23 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-            {/* Pillar 1 - Wide layout (7 cols) */}
-            <div className="lg:col-span-7 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+            {/* Pillar 1 - Wide layout */}
+            <div className="lg:col-span-7 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 mb-6 group-hover:scale-105 transition-transform">
-                  <BrainCircuit className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 mb-6">
+                  <BrainCircuit className="w-5.5 h-5.5" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">Semantic NLP Evaluation</h3>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">Semantic NLP Evaluation</h3>
                 <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
                   Goes beyond simplistic keyword checks. Analyzes document context, matching experience and related skills semantically for absolute score accuracy.
                 </p>
               </div>
               
               {/* Graphic element for NLP evaluation */}
-              <div className="mt-8 bg-slate-950/60 border border-white/5 rounded-2xl p-5 font-mono text-xs text-slate-500 space-y-3 relative overflow-hidden">
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">Semantic Distance Analyzer</span>
-                  <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px] font-bold font-semibold">Cosine Similarity: 0.94</span>
+              <div className="mt-8 bg-slate-950 border border-slate-850 rounded-xl p-4.5 font-mono text-xs text-slate-500 space-y-3 relative overflow-hidden">
+                <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                  <span className="text-[10px] text-blue-500 uppercase tracking-wider font-bold">Semantic Distance Analyzer</span>
+                  <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px] font-bold">Cosine Similarity: 0.94</span>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -774,80 +776,78 @@ export default function LandingPage() {
                     <span>Parsed Candidate Context</span>
                     <span className="text-slate-300">"AI/ML Research Lead"</span>
                   </div>
-                  <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1">
+                  <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden mt-1">
                     <div className="bg-blue-500 h-full w-[94%]" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Pillar 2 - Tall layout (5 cols) */}
-            <div className="lg:col-span-5 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+            {/* Pillar 2 - Tall layout */}
+            <div className="lg:col-span-5 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mb-6 group-hover:scale-105 transition-transform">
-                  <Terminal className="w-6 h-6 animate-pulse" />
+                <div className="w-11 h-11 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mb-6">
+                  <Terminal className="w-5.5 h-5.5" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">SSE Real-Time Logs</h3>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">SSE Real-Time Logs</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
                   Watch the recruitment engine extract and score profiles instantly. Streaming progress logs provide high-precision feedback as parsing occurs.
                 </p>
               </div>
-              <div className="mt-8 rounded-xl bg-slate-950 border border-white/5 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5 overflow-hidden max-h-[120px]">
+              <div className="mt-8 rounded-xl bg-[#080c18] border border-slate-850 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5 overflow-hidden max-h-[110px]">
                 <div className="text-slate-600">&gt; Starting stream server...</div>
                 <div className="text-blue-400">&gt; event: parse_started | total_resumes: 12</div>
                 <div className="text-emerald-400">&gt; event: parse_success | candidate: Alice</div>
               </div>
             </div>
 
-            {/* Pillar 3 - Tall layout (5 cols) */}
-            <div className="lg:col-span-5 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+            {/* Pillar 3 - Tall layout */}
+            <div className="lg:col-span-5 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 mb-6 group-hover:scale-105 transition-transform">
-                  <ShieldCheck className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 mb-6">
+                  <ShieldCheck className="w-5.5 h-5.5" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">OAuth Cryptographic Security</h3>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">OAuth Cryptographic Security</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
                   Integrates seamlessly with verified Google Authentication (OAuth2) to guarantee corporate logins and protect proprietary workspace screening records.
                 </p>
               </div>
-              <div className="mt-8 flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <div className="mt-8 flex items-center gap-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                 <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase">Secure OAuth Pipeline Enabled</span>
               </div>
             </div>
 
-            {/* Pillar 4 - Wide layout (7 cols) */}
-            <div className="lg:col-span-7 glass-card p-10 rounded-3xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left relative overflow-hidden group flex flex-col justify-between min-h-[380px]">
+            {/* Pillar 4 - Wide layout */}
+            <div className="lg:col-span-7 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-400 mb-6 group-hover:scale-105 transition-transform">
-                  <Sparkles className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-400 mb-6">
+                  <Sparkles className="w-5.5 h-5.5" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">Specialized Skills Indexing</h3>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">Specialized Skills Indexing</h3>
                 <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
                   Automatically parse niche, high-value skills categories including AI Agent Orchestration, SEO Technical structures, Supabase best practices, and QA automation frameworks.
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap gap-2">
-                <span className="badge-agent text-xs py-1.5 px-3 rounded-xl font-bold">Subagent-Driven-Development</span>
-                <span className="badge-seo text-xs py-1.5 px-3 rounded-xl font-bold">SEO Technical</span>
-                <span className="badge-backend text-xs py-1.5 px-3 rounded-xl font-bold">Supabase Postgres</span>
-                <span className="badge-frontend text-xs py-1.5 px-3 rounded-xl font-bold">3D Web / Scroll Experience</span>
+                <span className="badge-agent text-xs py-1.5 px-3 rounded-lg font-semibold">Subagent-Driven-Development</span>
+                <span className="badge-seo text-xs py-1.5 px-3 rounded-lg font-semibold">SEO Technical</span>
+                <span className="badge-backend text-xs py-1.5 px-3 rounded-lg font-semibold">Supabase Postgres</span>
+                <span className="badge-frontend text-xs py-1.5 px-3 rounded-lg font-semibold">3D Web / Scroll Experience</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* Section 3: Interactive Demo Visualizer (Fully Interactive Simulation) */}
-        <section id="demo" className="glass-panel rounded-3xl p-8 sm:p-12 border-white/10 bg-slate-950/60 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-80 h-80 bg-blue-500/5 rounded-full filter blur-[100px] pointer-events-none" />
-          <div className="absolute left-0 bottom-0 w-80 h-80 bg-indigo-500/5 rounded-full filter blur-[100px] pointer-events-none" />
+        <section id="demo" className="glass-panel rounded-2xl p-8 sm:p-10 border border-slate-800 bg-[#0d1326] relative overflow-hidden">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
             
             {/* Interactive Control Panel */}
             <div className="lg:col-span-5 flex flex-col justify-between space-y-8 text-left">
               <div className="space-y-6">
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/10 px-3 py-1 rounded-md">LIVE PIPELINE INSIGHTS</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-1 rounded-md">LIVE PIPELINE INSIGHTS</span>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Watch AI Screen in Action</h3>
                 <p className="text-slate-400 text-xs leading-relaxed">
                   Toggle templates, adjust multi-criteria weights, and execute a live simulated parse. Watch how candidates score and re-rank themselves dynamically.
@@ -862,10 +862,10 @@ export default function LandingPage() {
                         key={t.key}
                         onClick={() => setSelectedTemplateKey(t.key)}
                         disabled={isSimulating}
-                        className={`py-2 px-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                        className={`py-2 px-2.5 rounded-lg border text-center transition-all cursor-pointer ${
                           selectedTemplateKey === t.key
-                            ? 'bg-blue-600/10 border-blue-500 text-blue-300 shadow-md shadow-blue-500/5 font-semibold text-xs'
-                            : 'border-white/5 bg-slate-900/30 text-slate-400 hover:text-slate-300 hover:bg-slate-900/60 text-xs'
+                            ? 'bg-blue-600/15 border-blue-500 text-blue-400 font-semibold text-xs'
+                            : 'border-slate-800 bg-[#080c18] text-slate-400 hover:text-slate-300 hover:bg-slate-900/60 text-xs'
                         }`}
                       >
                         {t.shortName}
@@ -875,10 +875,10 @@ export default function LandingPage() {
                 </div>
 
                 {/* Dynamic Scoring Weights Control */}
-                <div className="space-y-4 pt-1 bg-slate-900/20 border border-white/5 p-4 rounded-2xl">
+                <div className="space-y-4 pt-1 bg-[#080c18] border border-slate-850 p-4 rounded-xl">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Adjust Scoring Weights</span>
-                    <span className="text-[9px] font-semibold text-blue-400 font-mono tracking-widest uppercase">Total: 100%</span>
+                    <span className="text-[9px] font-semibold text-blue-500 font-mono tracking-widest uppercase">Total: 100%</span>
                   </div>
                   
                   {/* Skills Weight Slider */}
@@ -894,7 +894,7 @@ export default function LandingPage() {
                       value={skillsWeight}
                       onChange={(e) => handleSkillsWeightChange(parseInt(e.target.value))}
                       disabled={isSimulating}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                   </div>
 
@@ -911,7 +911,7 @@ export default function LandingPage() {
                       value={semanticWeight}
                       onChange={(e) => handleSemanticWeightChange(parseInt(e.target.value))}
                       disabled={isSimulating}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                   </div>
 
@@ -928,7 +928,7 @@ export default function LandingPage() {
                       value={experienceWeight}
                       onChange={(e) => handleExperienceWeightChange(parseInt(e.target.value))}
                       disabled={isSimulating}
-                      className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                   </div>
                 </div>
@@ -938,7 +938,7 @@ export default function LandingPage() {
               <button
                 onClick={handleStartSimulation}
                 disabled={isSimulating}
-                className="w-full glass-button-primary py-4 px-6 rounded-2xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full glass-button-primary py-3.5 px-6 rounded-xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play className="w-3.5 h-3.5 fill-current text-white shrink-0" />
                 <span>{isSimulating ? "AI Pipeline Screening..." : "Run Live AI Screening"}</span>
@@ -949,11 +949,11 @@ export default function LandingPage() {
             <div className="lg:col-span-7 flex flex-col justify-between gap-6">
               
               {/* Detailed Dashboard Ranking Simulator */}
-              <div className="glass-card p-5 sm:p-6 rounded-2xl border-white/5 bg-slate-900/35 relative overflow-hidden shadow-2xl flex-1 flex flex-col justify-between">
+              <div className="bg-slate-950 p-5 sm:p-6 rounded-xl border border-slate-800 relative overflow-hidden shadow-2xl flex-1 flex flex-col justify-between">
                 
                 {/* Ranking Table Header */}
                 <div>
-                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5 text-slate-500 text-[10px] font-mono">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800 text-slate-500 text-[10px] font-mono">
                     <span className="uppercase">ACTIVE PIPELINE RUN: {activeTemplate.roleName}</span>
                     <span>3 PROFILES RANKED</span>
                   </div>
@@ -966,10 +966,10 @@ export default function LandingPage() {
                       return (
                         <div 
                           key={cand.id} 
-                          className={`rounded-xl border transition-all ${
+                          className={`rounded-lg border transition-all ${
                             isExpanded 
-                              ? 'border-indigo-500/30 bg-indigo-950/10' 
-                              : 'border-white/5 bg-slate-950/40 hover:bg-slate-900/20'
+                              ? 'border-slate-700 bg-[#0d1326]' 
+                              : 'border-slate-850 bg-[#080c18] hover:bg-slate-900/20'
                           }`}
                         >
                           {/* Card Header Row clickable */}
@@ -984,7 +984,7 @@ export default function LandingPage() {
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold text-xs flex items-center justify-center shrink-0">
+                              <div className="w-7 h-7 rounded-md bg-slate-900 border border-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">
                                 #{index + 1}
                               </div>
                               <div className="min-w-0">
@@ -1016,11 +1016,11 @@ export default function LandingPage() {
 
                           {/* Expanded Skill Gap Details Drawer */}
                           {isExpanded && (
-                            <div className="px-4 pb-4.5 pt-1 border-t border-white/5 space-y-3.5 animate-slide-up">
+                            <div className="px-4 pb-4.5 pt-1 border-t border-slate-800 space-y-3.5 animate-slide-up">
                               {/* AI summary block */}
-                              <div className="bg-slate-900/60 border border-white/5 p-3 rounded-lg text-left">
+                              <div className="bg-[#080c18] border border-slate-850 p-3 rounded-lg text-left">
                                 <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest block mb-1">AI Generated Summary</span>
-                                <p className="text-[11px] text-slate-300 leading-relaxed leading-normal">{cand.summary}</p>
+                                <p className="text-[11px] text-slate-300 leading-normal">{cand.summary}</p>
                               </div>
 
                               <div className="grid grid-cols-2 gap-4 text-left">
@@ -1058,7 +1058,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Progress bar and toggle indicators */}
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[9px] font-mono text-slate-500">
+                <div className="mt-6 pt-4 border-t border-slate-850 flex items-center justify-between text-[9px] font-mono text-slate-500">
                   <span className="flex items-center gap-1.5">
                     {isSimulating ? (
                       <>
@@ -1074,7 +1074,7 @@ export default function LandingPage() {
               </div>
 
               {/* Dynamic Terminal Output Console */}
-              <div className="rounded-2xl bg-slate-950 border border-white/5 p-4.5 font-mono text-[10.5px] text-left leading-relaxed text-slate-400 flex flex-col justify-between h-40 shadow-inner overflow-hidden">
+              <div className="rounded-xl bg-[#03060f] border border-slate-850 p-4 font-mono text-[10.5px] text-left leading-relaxed text-slate-400 flex flex-col justify-between h-40 shadow-inner overflow-hidden">
                 <div className="overflow-y-auto space-y-1 pr-1 flex-1">
                   {activeLogs.map((log, idx) => (
                     <div 
@@ -1102,7 +1102,7 @@ export default function LandingPage() {
         {/* Section 4: Enterprise Pricing Options */}
         <section id="pricing" className="space-y-16">
           <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/10 px-3 py-1 rounded-md">AFFORDABLE SAAS</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-1 rounded-md">AFFORDABLE SAAS</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Flexible Plans For Modern HR Teams</h2>
             <p className="text-slate-400 text-sm">
               Start parsing candidate resumes instantly. Unlock advanced analytics options as your recruitment scale grows.
@@ -1111,12 +1111,12 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {/* Plan 1 */}
-            <div className="glass-card p-8 rounded-2xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left flex flex-col justify-between">
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-xl text-left flex flex-col justify-between">
               <div>
-                <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider block">Sandbox Plan</span>
+                <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider block">Sandbox Plan</span>
                 <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">$0<span className="text-sm font-normal text-slate-500">/mo</span></h3>
                 <p className="text-slate-400 text-xs mt-3 leading-relaxed">Perfect for local developers to test CV entity parsing and Google auth flows.</p>
-                <div className="space-y-3 mt-6 border-t border-white/5 pt-6 text-xs text-slate-300">
+                <div className="space-y-3 mt-6 border-t border-slate-800 pt-6 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Up to 10 resumes per run</span>
@@ -1127,28 +1127,28 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>SQLite database backend</span>
+                    <span>Neon PostgreSQL backend</span>
                   </div>
                 </div>
               </div>
               <Link 
                 href={user ? "/dashboard" : "/login"}
-                className="glass-button w-full py-3.5 rounded-xl text-xs font-bold text-center mt-8 block"
+                className="glass-button w-full py-3 rounded-lg text-xs font-semibold text-center mt-8 block"
               >
                 {user ? "Go to Dashboard" : "Try Free Sandbox"}
               </Link>
             </div>
 
             {/* Plan 2: Best Value */}
-            <div className="glass-card p-8 rounded-2xl border-indigo-500/30 bg-slate-900/20 hover:bg-slate-900/30 text-left flex flex-col justify-between relative shadow-lg shadow-indigo-950/20 scale-100 md:scale-[1.03] animate-float">
-              <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-bold text-indigo-300 uppercase tracking-wider">
+            <div className="bg-slate-900 border-2 border-blue-600 p-8 rounded-xl text-left flex flex-col justify-between relative shadow-xl scale-100 md:scale-[1.03]">
+              <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-blue-600/10 border border-blue-500/20 text-[9px] font-bold text-blue-400 uppercase tracking-wider">
                 RECOMMENDED
               </div>
               <div>
-                <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider block">Pro Recruiter</span>
+                <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider block">Pro Recruiter</span>
                 <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">$49<span className="text-sm font-normal text-slate-500">/mo</span></h3>
                 <p className="text-slate-400 text-xs mt-3 leading-relaxed">Designed for active recruiters requiring large-scale document parsing options.</p>
-                <div className="space-y-3 mt-6 border-t border-white/5 pt-6 text-xs text-slate-300">
+                <div className="space-y-3 mt-6 border-t border-slate-800 pt-6 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Unlimited candidate profiles</span>
@@ -1169,19 +1169,19 @@ export default function LandingPage() {
               </div>
               <Link 
                 href={user ? "/dashboard" : "/login"}
-                className="glass-button-primary w-full py-4 rounded-xl text-xs font-extrabold text-center mt-8 block shadow-md shadow-indigo-900/10"
+                className="glass-button-primary w-full py-3 rounded-lg text-xs font-semibold text-center mt-8 block shadow-sm"
               >
                 {user ? "Go to Dashboard" : "Upgrade to Pro"}
               </Link>
             </div>
 
             {/* Plan 3 */}
-            <div className="glass-card p-8 rounded-2xl border-white/5 bg-slate-900/10 hover:bg-slate-900/20 text-left flex flex-col justify-between">
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-xl text-left flex flex-col justify-between">
               <div>
-                <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider block">Enterprise Suite</span>
+                <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider block">Enterprise Suite</span>
                 <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">Custom<span className="text-sm font-normal text-slate-500"></span></h3>
                 <p className="text-slate-400 text-xs mt-3 leading-relaxed">Custom NLP fine-tuning, workspace roles, and multi-tenant isolation schemas.</p>
-                <div className="space-y-3 mt-6 border-t border-white/5 pt-6 text-xs text-slate-300">
+                <div className="space-y-3 mt-6 border-t border-slate-800 pt-6 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Dedicated database nodes</span>
@@ -1198,27 +1198,27 @@ export default function LandingPage() {
               </div>
               <Link 
                 href={user ? "/dashboard" : "/login"}
-                className="glass-button w-full py-3.5 rounded-xl text-xs font-bold text-center mt-8 block"
+                className="glass-button w-full py-3 rounded-lg text-xs font-semibold text-center mt-8 block"
               >
                 Contact Sales
               </Link>
             </div>
           </div>
         </section>
-
+ 
       </main>
-
+ 
       {/* Footer bar */}
-      <footer className="w-full border-t border-white/5 bg-slate-950/40 backdrop-blur-md mt-auto py-12 text-slate-500 text-xs z-10 relative">
+      <footer className="w-full border-t border-slate-800 bg-[#060913] mt-auto py-12 text-slate-500 text-xs z-10 relative">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-6.5 h-6.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-              <BrainCircuit className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="w-6.5 h-6.5 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+              <BrainCircuit className="w-3.5 h-3.5 text-blue-500" />
             </div>
             <span className="font-semibold text-slate-400">HireGrid.io</span>
             <span>&copy; {new Date().getFullYear()}. All rights reserved.</span>
           </div>
-
+ 
           <div className="flex items-center gap-6">
             <span className="text-[10px] uppercase font-bold tracking-widest text-slate-600">Secure AI Screenings</span>
           </div>

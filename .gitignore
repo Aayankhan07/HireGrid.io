@@ -52,3 +52,10 @@ backend/*.db-journal
 # Accuracy Reports and Benchmarks
 accuracy_checker/accuracy_report.json
 
+# Candidate Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs and debug output
+*.log
+backend/*.log

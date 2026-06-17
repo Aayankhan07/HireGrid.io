@@ -91,26 +91,26 @@ export default function NewScreeningForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#020617]/85 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="glass-panel w-full max-w-4xl rounded-3xl relative overflow-hidden animate-slide-up my-8">
+    <div className="fixed inset-0 bg-[#060913]/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="w-full max-w-4xl rounded-xl relative overflow-hidden animate-slide-up my-8 border border-slate-800 bg-[#0d1326] shadow-2xl">
         
         {/* Border Accent Line */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500" />
         
         {/* Form Header */}
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
+        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-9 h-9 rounded-md bg-slate-900 flex items-center justify-center border border-slate-800 text-blue-450">
               <Sliders className="w-4.5 h-4.5" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">New Candidate Screening</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Configure matching parameters and upload target resumes.</p>
+              <p className="text-xs text-slate-450 mt-1">Configure matching parameters and upload target resumes.</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -175,7 +175,7 @@ export default function NewScreeningForm({
                     <select
                       value={requiredEducation}
                       onChange={(e) => setRequiredEducation(e.target.value)}
-                      className="glass-input w-full py-2.5 px-4 text-sm appearance-none cursor-pointer bg-slate-900"
+                      className="glass-input w-full py-2.5 px-4 text-sm appearance-none cursor-pointer bg-[#080c18] border border-slate-800 text-slate-350"
                     >
                       <option value="Any">Any Education</option>
                       <option value="Bachelor">Bachelor Degree</option>
@@ -254,10 +254,10 @@ export default function NewScreeningForm({
                 onDragLeave={handleDrag}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`flex-1 min-h-[160px] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all cursor-pointer ${
+                className={`flex-1 min-h-[160px] border border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all cursor-pointer ${
                   isDragActive 
                     ? 'border-blue-500 bg-blue-600/10' 
-                    : 'border-white/10 hover:border-blue-500/50 hover:bg-white/5'
+                    : 'border-slate-800 hover:border-slate-700 bg-[#080c18] hover:bg-[#0c142c]'
                 }`}
               >
                 <input
@@ -268,7 +268,7 @@ export default function NewScreeningForm({
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <div className="w-12 h-12 rounded-xl bg-slate-800/80 flex items-center justify-center mb-3">
+                <div className="w-12 h-12 rounded-lg bg-[#060913] flex items-center justify-center mb-3 border border-slate-850">
                   <Upload className="w-5 h-5 text-slate-400" />
                 </div>
                 <p className="text-sm font-semibold text-white">Click or drag PDF resumes here</p>
@@ -278,21 +278,21 @@ export default function NewScreeningForm({
               {/* Uploaded File List */}
               <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1">
                 {files.length === 0 ? (
-                  <p className="text-center text-xs text-slate-600 py-6 italic border border-white/5 rounded-xl bg-slate-950/20">
+                  <p className="text-center text-xs text-slate-600 py-6 italic border border-slate-800 rounded-lg bg-[#080c18]/40">
                     No resumes selected.
                   </p>
                 ) : (
                   files.map((file, idx) => (
                     <div 
                       key={idx} 
-                      className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-slate-950/40"
+                      className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-[#080c18]/80"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                      <div className="flex items-center gap-3 min-w-0 text-left">
+                        <div className="w-8 h-8 rounded bg-slate-900 border border-slate-850 flex items-center justify-center text-blue-450 shrink-0">
                           <FileText className="w-4.5 h-4.5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-slate-300 truncate">{file.name}</p>
+                          <p className="text-xs font-medium text-slate-350 truncate">{file.name}</p>
                           <p className="text-[10px] text-slate-500 mt-0.5">{(file.size / 1024).toFixed(0)} KB</p>
                         </div>
                       </div>
@@ -300,9 +300,9 @@ export default function NewScreeningForm({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeFile(idx);
+                           removeFile(idx);
                         }}
-                        className="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="p-1 rounded-md text-slate-500 hover:text-red-450 hover:bg-red-500/10 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -326,23 +326,23 @@ export default function NewScreeningForm({
           </div>
 
           {/* Form Actions */}
-          <div className="pt-4 border-t border-white/5 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-5 py-2.5 rounded-xl border border-white/5 text-slate-300 text-sm hover:bg-white/5 transition-colors cursor-pointer"
+              className="px-5 py-2.5 rounded-lg border border-slate-800 text-slate-300 text-sm hover:bg-slate-900 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || files.length === 0}
-              className="glass-button-primary px-7 py-2.5 rounded-xl text-sm flex items-center gap-2"
+              className="glass-button-primary px-7 py-2.5 rounded-lg text-sm flex items-center gap-2"
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                  <div className="w-4 h-4 rounded-full border-2 border-slate-800 border-t-slate-300 animate-spin" />
                   <span>Processing...</span>
                 </>
               ) : (

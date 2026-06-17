@@ -17,7 +17,7 @@ export default function DeepAnalysis({
   
   if (candidates.length === 0) {
     return (
-      <div className="glass-card border-dashed flex flex-col items-center justify-center py-20 text-center">
+      <div className="rounded-xl border border-dashed border-slate-800 flex flex-col items-center justify-center py-20 text-center bg-[#0d1326]">
         <AlertCircle className="w-12 h-12 text-slate-500 mb-3" />
         <p className="text-slate-400 font-semibold text-sm">No analysis metrics available</p>
         <p className="text-slate-500 text-xs mt-1">Please process a set of resumes to display deep analytical insights.</p>
@@ -84,42 +84,39 @@ export default function DeepAnalysis({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* KPI: Average Fit */}
-        <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shrink-0">
-            <Award className="w-6 h-6" />
+        <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
+          <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-450 border border-slate-800 shrink-0">
+            <Award className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Average Fit Score</span>
-            <h3 className="text-3xl font-extrabold text-white mt-0.5">{avgScore.toFixed(1)}%</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Across all screened resumes</p>
+          <div className="text-left">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Average Fit Score</span>
+            <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{avgScore.toFixed(1)}%</h3>
+            <p className="text-[10px] text-slate-500 mt-1">Across all screened resumes</p>
           </div>
-          <div className="absolute right-[-10px] bottom-[-10px] w-20 h-20 bg-blue-500/5 rounded-full filter blur-xl" />
         </div>
 
         {/* KPI: Top Matching */}
-        <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shrink-0">
-            <Star className="w-6 h-6" />
+        <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
+          <div className="w-12 h-12 rounded-lg bg-emerald-500/5 flex items-center justify-center text-emerald-455 border border-slate-800 shrink-0">
+            <Star className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Maximum Match Score</span>
-            <h3 className="text-3xl font-extrabold text-white mt-0.5">{maxScore.toFixed(0)}%</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Best prospective match fit</p>
+          <div className="text-left">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Maximum Match Score</span>
+            <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{maxScore.toFixed(0)}%</h3>
+            <p className="text-[10px] text-slate-500 mt-1">Best prospective match fit</p>
           </div>
-          <div className="absolute right-[-10px] bottom-[-10px] w-20 h-20 bg-emerald-500/5 rounded-full filter blur-xl" />
         </div>
 
         {/* KPI: Pipeline funnel */}
-        <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shrink-0">
-            <BookOpen className="w-6 h-6" />
+        <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
+          <div className="w-12 h-12 rounded-lg bg-indigo-500/5 flex items-center justify-center text-indigo-455 border border-slate-800 shrink-0">
+            <BookOpen className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Shortlist Yield</span>
-            <h3 className="text-3xl font-extrabold text-white mt-0.5">{((shortlistCount / totalCount) * 100).toFixed(0)}%</h3>
-            <p className="text-[10px] text-slate-400 mt-1">{shortlistCount} shortlisted candidates</p>
+          <div className="text-left">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Shortlist Yield</span>
+            <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{((shortlistCount / totalCount) * 100).toFixed(0)}%</h3>
+            <p className="text-[10px] text-slate-500 mt-1">{shortlistCount} shortlisted candidates</p>
           </div>
-          <div className="absolute right-[-10px] bottom-[-10px] w-20 h-20 bg-indigo-500/5 rounded-full filter blur-xl" />
         </div>
       </div>
 
@@ -127,22 +124,22 @@ export default function DeepAnalysis({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Analytics Card: Skills Match Frequencies */}
-        <div className="glass-panel p-6 rounded-3xl border border-white/5 space-y-4">
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Required Skills Matching Rate</h4>
-            <p className="text-xs text-slate-500 mt-0.5">Which required skills appear most frequently across all candidates.</p>
+        <div className="p-6 rounded-xl border border-slate-800 bg-[#0d1326] space-y-4">
+          <div className="text-left">
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Required Skills Matching Rate</h4>
+            <p className="text-xs text-slate-500 mt-1">Which required skills appear most frequently across all candidates.</p>
           </div>
 
-          <div className="space-y-4.5 pt-2">
+          <div className="space-y-4 pt-2">
             {skillMetrics.map((sm, idx) => (
               <div key={idx} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-slate-300">{sm.name}</span>
-                  <span className="text-slate-400">{sm.count} / {totalCount} ({sm.percentage.toFixed(0)}%)</span>
+                  <span className="text-slate-300 font-medium">{sm.name}</span>
+                  <span className="text-slate-450">{sm.count} / {totalCount} ({sm.percentage.toFixed(0)}%)</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden p-[1px]">
+                <div className="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden">
                   <div 
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-400"
+                    className="h-full rounded-full bg-blue-500"
                     style={{ width: `${sm.percentage}%` }}
                   />
                 </div>
@@ -152,23 +149,23 @@ export default function DeepAnalysis({
         </div>
 
         {/* Analytics Card: Skills Gaps & Funnel Status */}
-        <div className="glass-panel p-6 rounded-3xl border border-white/5 space-y-6">
+        <div className="p-6 rounded-xl border border-slate-800 bg-[#0d1326] space-y-6">
           
           {/* Section: Common Skill Gaps */}
           <div className="space-y-3">
-            <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Common Missing Talent Gaps</h4>
-              <p className="text-xs text-slate-500 mt-0.5">The most common skills missing in parsed candidates.</p>
+            <div className="text-left">
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Common Missing Talent Gaps</h4>
+              <p className="text-xs text-slate-500 mt-1">The most common skills missing in parsed candidates.</p>
             </div>
             
-            <div className="space-y-2.5 pt-1">
+            <div className="space-y-2 pt-1">
               {missingSkillMetrics.map((mm, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl border border-red-500/10 bg-red-950/5">
+                <div key={idx} className="flex items-center justify-between p-3.5 rounded-lg border border-red-500/10 bg-red-950/10 text-left">
                   <div className="flex items-center gap-3">
                     <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="text-xs font-semibold text-slate-200">{mm.name}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-red-400 uppercase bg-red-500/10 border border-red-500/10 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-bold text-red-400 uppercase bg-red-500/10 border border-red-500/10 px-2 py-0.5 rounded">
                     {mm.count} candidates missing ({mm.percentage.toFixed(0)}%)
                   </span>
                 </div>
@@ -180,25 +177,27 @@ export default function DeepAnalysis({
           </div>
 
           {/* Section: Funnel Status Breakdown */}
-          <div className="space-y-3 border-t border-white/5 pt-5">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Scoring Tier Distribution</h4>
+          <div className="space-y-3 border-t border-slate-800 pt-5">
+            <div className="text-left">
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Scoring Tier Distribution</h4>
+            </div>
             
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-xl border border-emerald-500/10 bg-emerald-500/5 text-center">
+              <div className="p-3.5 rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-center">
                 <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Shortlist</span>
-                <p className="text-xl font-extrabold text-emerald-400 mt-1">{shortlistCount}</p>
+                <p className="text-xl font-bold text-emerald-450 mt-1">{shortlistCount}</p>
                 <p className="text-[9px] text-slate-500 mt-0.5">({((shortlistCount/totalCount)*100).toFixed(0)}%)</p>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-amber-500/10 bg-amber-500/5 text-center">
+              <div className="p-3.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-center">
                 <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Review</span>
-                <p className="text-xl font-extrabold text-amber-400 mt-1">{reviewCount}</p>
+                <p className="text-xl font-bold text-amber-450 mt-1">{reviewCount}</p>
                 <p className="text-[9px] text-slate-500 mt-0.5">({((reviewCount/totalCount)*100).toFixed(0)}%)</p>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-slate-500/15 bg-slate-500/5 text-center">
+              <div className="p-3.5 rounded-lg border border-slate-800 bg-slate-900/40 text-center">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pending</span>
-                <p className="text-xl font-extrabold text-slate-400 mt-1">{pendingCount}</p>
+                <p className="text-xl font-bold text-slate-450 mt-1">{pendingCount}</p>
                 <p className="text-[9px] text-slate-500 mt-0.5">({((pendingCount/totalCount)*100).toFixed(0)}%)</p>
               </div>
             </div>
