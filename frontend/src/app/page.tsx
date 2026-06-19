@@ -560,13 +560,10 @@ export default function LandingPage() {
 
       {/* Premium Navbar */}
       <header className="w-full border-b border-slate-800 bg-[#060913]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-              <BrainCircuit className="w-4.5 h-4.5 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white">
+          <Link href="/" className="flex items-center group">
+            <span className="text-xl sm:text-2xl xl:text-[26px] font-bold tracking-tight text-white transition-all">
               Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
             </span>
           </Link>
@@ -611,7 +608,7 @@ export default function LandingPage() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 w-full z-10 space-y-32 py-16 md:py-24">
+      <main className="flex-1 max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 w-full z-10 space-y-32 py-16 md:py-24">
         
         {/* Section 1: Hero Banner */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
@@ -666,8 +663,8 @@ export default function LandingPage() {
           </div>
 
           {/* Right Side: High-fidelity Candidate Board mockup */}
-          <div className="lg:col-span-6 animate-slide-up">
-            <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-800 bg-[#0d1326] shadow-2xl relative">
+          <div className="lg:col-span-6 animate-slide-up flex lg:justify-end">
+            <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-slate-800 bg-[#0d1326] shadow-2xl relative w-full max-w-[560px]">
               <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-800">
                 <span className="text-xs font-semibold tracking-tight text-slate-200">Matching Pipeline</span>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-medium">
@@ -741,7 +738,7 @@ export default function LandingPage() {
         {/* Section 2: Core Platform Pillars (Pillars Grid) */}
         <section id="features" className="space-y-16 pt-8">
           <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/15 px-3 py-1 rounded-md">CORE TECHNOLOGY</span>
+            <span className="inline-block text-[10px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/15 px-3 py-1 rounded-md">CORE TECHNOLOGY</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Accelerate Your Enterprise Hiring Funnel</h2>
             <p className="text-slate-400 text-sm">
               We leverage multi-stage parsing systems to identify, classify, and match the most relevant corporate talent instantly.
@@ -840,18 +837,21 @@ export default function LandingPage() {
         </section>
 
         {/* Section 3: Interactive Demo Visualizer (Fully Interactive Simulation) */}
-        <section id="demo" className="glass-panel rounded-2xl p-8 sm:p-10 border border-slate-800 bg-[#0d1326] relative overflow-hidden">
+        <section id="demo" className="glass-panel rounded-2xl p-8 sm:p-10 lg:p-12 border border-slate-800 bg-[#0d1326] relative overflow-hidden">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
             
             {/* Interactive Control Panel */}
             <div className="lg:col-span-5 flex flex-col justify-between space-y-8 text-left">
-              <div className="space-y-6">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-1 rounded-md">LIVE PIPELINE INSIGHTS</span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Watch AI Screen in Action</h3>
-                <p className="text-slate-400 text-xs leading-relaxed">
-                  Toggle templates, adjust multi-criteria weights, and execute a live simulated parse. Watch how candidates score and re-rank themselves dynamically.
-                </p>
+              <div className="space-y-8">
+                {/* Section Header */}
+                <div className="space-y-4">
+                  <span className="inline-block text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-1 rounded-md">LIVE PIPELINE INSIGHTS</span>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Watch AI Screen in Action</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed">
+                    Toggle templates, adjust multi-criteria weights, and execute a live simulated parse. Watch how candidates score and re-rank themselves dynamically.
+                  </p>
+                </div>
 
                 {/* Job Template Selectors */}
                 <div className="space-y-2">
@@ -1102,14 +1102,14 @@ export default function LandingPage() {
         {/* Section 4: Enterprise Pricing Options */}
         <section id="pricing" className="space-y-16">
           <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-1 rounded-md">AFFORDABLE SAAS</span>
+            <span className="inline-block text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-1 rounded-md">AFFORDABLE SAAS</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Flexible Plans For Modern HR Teams</h2>
             <p className="text-slate-400 text-sm">
               Start parsing candidate resumes instantly. Unlock advanced analytics options as your recruitment scale grows.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-5xl xl:max-w-6xl mx-auto w-full">
             {/* Plan 1 */}
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-xl text-left flex flex-col justify-between">
               <div>
@@ -1210,11 +1210,8 @@ export default function LandingPage() {
  
       {/* Footer bar */}
       <footer className="w-full border-t border-slate-800 bg-[#060913] mt-auto py-12 text-slate-500 text-xs z-10 relative">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6.5 h-6.5 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-              <BrainCircuit className="w-3.5 h-3.5 text-blue-500" />
-            </div>
+        <div className="max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-400">HireGrid.io</span>
             <span>&copy; {new Date().getFullYear()}. All rights reserved.</span>
           </div>

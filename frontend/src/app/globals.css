@@ -5,12 +5,14 @@
   --color-brand-indigo: #6366f1;
   --color-brand-emerald: #10b981;
   --color-brand-amber: #f59e0b;
+  --color-slate-850: #0e1526;
 }
 
 :root {
   --background: #060913;
   --foreground: #f8fafc;
   --slate-900: #0a0f1d;
+  --slate-850: #0e1526;
   --slate-800: #121829;
   --slate-700: #1e294b;
   --slate-600: #334155;
