@@ -29,14 +29,10 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [role, setRole] = useState('Recruitment Lead');
   
-  // Google Auth & Mock Simulator States
+  // Google Auth States
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
   const [googleSdkLoaded, setGoogleSdkLoaded] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showMockGoogleDialog, setShowMockGoogleDialog] = useState(false);
-  const [customMockEmail, setCustomMockEmail] = useState('');
-  const [customMockName, setCustomMockName] = useState('');
-  const [useCustomMock, setUseCustomMock] = useState(false);
   
   // UI states
   const [loading, setLoading] = useState(false);
@@ -93,60 +89,67 @@ export default function LoginPage() {
     };
   }, [googleClientId, loginWithGoogle]);
 
-  // Hook to render live official Google Sign-In Button inside the dialog
+  // Hook to render live official Google Sign-In Button directly on forms
   useEffect(() => {
-    if (showMockGoogleDialog && googleClientId && googleSdkLoaded) {
+    if (googleClientId && googleSdkLoaded) {
       const isRealClient = googleClientId && 
                            !googleClientId.includes("placeholder") && 
                            !googleClientId.includes("YOUR_");
       if (isRealClient) {
-        // Allow a microsecond delay for the modal DOM element to mount
         const timer = setTimeout(() => {
-          const container = document.getElementById("google-live-btn-container");
-          if (container) {
-            try {
+          try {
+            // @ts-ignore
+            google.accounts.id.initialize({
+              client_id: googleClientId,
+              use_fedcm_for_prompt: false,
+              callback: async (response: any) => {
+                setError('');
+                setSuccessMsg('');
+                setIsGoogleLoading(true);
+                try {
+                  await loginWithGoogle(response.credential);
+                } catch (err: any) {
+                  setError(err.message || 'Failed to authenticate with Google account.');
+                  setIsGoogleLoading(false);
+                }
+              },
+            });
+
+            const btnSignin = document.getElementById("google-signin-btn-signin");
+            if (btnSignin) {
               // @ts-ignore
               google.accounts.id.renderButton(
-                container,
+                btnSignin,
                 { 
                   theme: "filled_blue", 
                   size: "large", 
-                  width: container.clientWidth || 330,
+                  width: btnSignin.clientWidth || 382,
                   text: "signin_with"
                 }
               );
-            } catch (e) {
-              console.warn("Failed to render native Google button:", e);
             }
+
+            const btnSignup = document.getElementById("google-signin-btn-signup");
+            if (btnSignup) {
+              // @ts-ignore
+              google.accounts.id.renderButton(
+                btnSignup,
+                { 
+                  theme: "filled_blue", 
+                  size: "large", 
+                  width: btnSignup.clientWidth || 382,
+                  text: "signin_with"
+                }
+              );
+            }
+          } catch (e) {
+            console.warn("Failed to render native Google button:", e);
           }
-        }, 150);
+        }, 200);
         return () => clearTimeout(timer);
       }
     }
-  }, [showMockGoogleDialog, googleClientId, googleSdkLoaded]);
-
-  const handleGoogleSignInClick = () => {
-    setError('');
-    setSuccessMsg('');
-    setShowMockGoogleDialog(true);
-  };
-
-  const handleMockAccountSelect = async (mockEmail: string, mockName: string) => {
-    setShowMockGoogleDialog(false);
-    setError('');
-    setSuccessMsg('');
-    setIsGoogleLoading(true);
-    
-    try {
-      // Slugify name for token: spaces -> hyphens
-      const nameSlug = mockName.trim().replace(/\s+/g, '-');
-      const mockToken = `mock_google_jwt_${mockEmail.trim()}_${nameSlug}`;
-      await loginWithGoogle(mockToken);
-    } catch (err: any) {
-      setError(err.message || 'Mock Google Authentication failed.');
-      setIsGoogleLoading(false);
-    }
-  };
+  }, [googleClientId, googleSdkLoaded, activeTab]);
 
   const handleTabChange = (tab: 'signin' | 'signup') => {
     setActiveTab(tab);
@@ -455,31 +458,22 @@ export default function LoginPage() {
                     )}
                   </button>
 
-                  {/* Visual Divider */}
-                  <div className="relative my-5 flex items-center justify-center">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-800"></div>
-                    </div>
-                    <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
-                  </div>
+                  {/* Real Google Account Login Button */}
+                  {googleClientId && !googleClientId.includes("placeholder") && !googleClientId.includes("YOUR_") && (
+                    <>
+                      {/* Visual Divider */}
+                      <div className="relative my-5 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-slate-800"></div>
+                        </div>
+                        <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
+                      </div>
 
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignInClick}
-                    disabled={loading || isGoogleLoading}
-                    className="w-full py-3 rounded-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 shadow-md disabled:opacity-80 active:scale-[0.98]"
-                  >
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                    </svg>
-                    <span className="font-semibold text-xs tracking-wide text-slate-200">Google Account</span>
-                    {isGoogleLoading && (
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-white animate-spin shrink-0 ml-1" />
-                    )}
-                  </button>
+                      <div className="w-full flex justify-center">
+                        <div id="google-signin-btn-signin" className="w-full min-h-[44px]"></div>
+                      </div>
+                    </>
+                  )}
                 </form>
               ) : (
                 <form onSubmit={handleSignUp} className="space-y-5">
@@ -596,31 +590,22 @@ export default function LoginPage() {
                     )}
                   </button>
 
-                  {/* Visual Divider */}
-                  <div className="relative my-5 flex items-center justify-center">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-800"></div>
-                    </div>
-                    <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
-                  </div>
+                  {/* Real Google Account Login Button */}
+                  {googleClientId && !googleClientId.includes("placeholder") && !googleClientId.includes("YOUR_") && (
+                    <>
+                      {/* Visual Divider */}
+                      <div className="relative my-5 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-slate-800"></div>
+                        </div>
+                        <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
+                      </div>
 
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignInClick}
-                    disabled={loading || isGoogleLoading}
-                    className="w-full py-3 rounded-lg flex items-center justify-center gap-2.5 transition-all cursor-pointer border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 shadow-md disabled:opacity-80 active:scale-[0.98]"
-                  >
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                    </svg>
-                    <span className="font-semibold text-xs tracking-wide text-slate-200">Google Account</span>
-                    {isGoogleLoading && (
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-white animate-spin shrink-0 ml-1" />
-                    )}
-                  </button>
+                      <div className="w-full flex justify-center">
+                        <div id="google-signin-btn-signup" className="w-full min-h-[44px]"></div>
+                      </div>
+                    </>
+                  )}
                 </form>
               )}
             </div>
@@ -634,151 +619,6 @@ export default function LoginPage() {
 
       </div>
 
-      {/* High-Fidelity Google Accounts Identity Simulator Modal */}
-      {showMockGoogleDialog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in text-left">
-          <div className="w-full max-w-sm rounded-2xl bg-[#0d1326] border border-slate-800 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative animate-scale-up">
-            
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setShowMockGoogleDialog(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer text-sm font-semibold"
-              title="Close simulator"
-            >
-              ✕
-            </button>
-
-            {/* Title Block */}
-            <div className="flex flex-col items-center text-center mt-3 mb-6">
-              <svg className="w-8 h-8 mb-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-              </svg>
-              <h3 className="text-base font-bold text-white tracking-wide">Sign in with Google</h3>
-              <p className="text-[11px] text-slate-400 mt-1">to continue to <span className="font-semibold text-blue-400">HireGrid.io</span></p>
-            </div>
-
-            {/* Real Google Account Live Button (Dynamic Container) */}
-            {googleClientId && !googleClientId.includes("placeholder") && !googleClientId.includes("YOUR_") && (
-              <div className="mb-5 pb-5 border-b border-slate-800 flex flex-col items-center">
-                <div id="google-live-btn-container" className="w-full flex justify-center"></div>
-                <div className="relative w-full flex items-center justify-center mt-5">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-800"></div>
-                  </div>
-                  <span className="relative px-3.5 bg-[#0d1326] text-[8px] font-bold text-slate-500 uppercase tracking-widest">Or Use Sandbox Bypass</span>
-                </div>
-              </div>
-            )}
-
-            {/* List of Simulated Developer Profiles */}
-            {!useCustomMock ? (
-              <div className="space-y-3">
-                {/* Account AS */}
-                <button
-                  onClick={() => handleMockAccountSelect('admin@hiregrid.io', 'Alex Sterling')}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8.5 h-8.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">
-                      AS
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold text-white block group-hover:text-blue-500 transition-colors">Alex Sterling</span>
-                      <span className="text-[10px] text-slate-500">admin@hiregrid.io</span>
-                    </div>
-                  </div>
-                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase">SEED ADMIN</span>
-                </button>
-
-                {/* Account SL */}
-                <button
-                  onClick={() => handleMockAccountSelect('sarah.lin@hiregrid.io', 'Sarah Lin')}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-[#080c18] hover:bg-slate-900 hover:border-slate-700 transition-all text-left cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8.5 h-8.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">
-                      SL
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold text-white block group-hover:text-blue-500 transition-colors">Sarah Lin</span>
-                      <span className="text-[10px] text-slate-500">sarah.lin@hiregrid.io</span>
-                    </div>
-                  </div>
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 uppercase">ENGINEER</span>
-                </button>
-
-                {/* Add Custom Account */}
-                <button
-                  type="button"
-                  onClick={() => setUseCustomMock(true)}
-                  className="w-full py-3 rounded-xl border border-dashed border-slate-800 hover:border-slate-700 bg-transparent hover:bg-white/[0.01] transition-all text-center text-xs font-semibold text-slate-450 cursor-pointer"
-                >
-                  + Use Another Account
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3.5 animate-fade-in text-left">
-                <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Simulated Profile Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={customMockName}
-                    onChange={(e) => setCustomMockName(e.target.value)}
-                    placeholder="Jane Doe"
-                    className="glass-input w-full py-2.5 px-3 text-xs bg-slate-950 border border-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Simulated Profile Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={customMockEmail}
-                    onChange={(e) => setCustomMockEmail(e.target.value)}
-                    placeholder="jane.doe@company.com"
-                    className="glass-input w-full py-2.5 px-3 text-xs bg-slate-950 border border-slate-800"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2.5 pt-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setUseCustomMock(false)}
-                    className="flex-1 py-2.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 text-xs font-semibold hover:bg-slate-900 hover:text-white cursor-pointer"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (customMockName.trim() && customMockEmail.includes('@')) {
-                        handleMockAccountSelect(customMockEmail, customMockName);
-                      } else {
-                        alert("Please provide a valid mock name and email.");
-                      }
-                    }}
-                    className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 cursor-pointer"
-                  >
-                    Authorize
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Sandbox Developer Tip */}
-            <div className="mt-5 pt-4 border-t border-slate-800 text-[9px] text-slate-500 leading-relaxed">
-              <span className="font-semibold block text-slate-400 mb-0.5">⚙️ Local Bypass Environment</span>
-              Google Authentication is running in simulated sandbox mode. To switch to live production Google Login, configure <code className="bg-slate-950 px-1 py-0.5 rounded text-slate-400 font-mono">NEXT_PUBLIC_GOOGLE_CLIENT_ID</code>.
-            </div>
-
-          </div>
-        </div>
-      )}
     </div>
   );
 }
