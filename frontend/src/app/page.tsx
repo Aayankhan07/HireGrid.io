@@ -507,10 +507,10 @@ export default function LandingPage() {
   // Terminal Auto Scroll
   const terminalEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (terminalEndRef.current) {
+    if (isSimulating && terminalEndRef.current) {
       terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [activeLogs]);
+  }, [activeLogs, isSimulating]);
 
   // Sync logs when template key changes and we are NOT actively simulating
   useEffect(() => {
