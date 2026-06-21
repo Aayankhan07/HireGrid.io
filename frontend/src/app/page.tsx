@@ -422,6 +422,7 @@ export default function LandingPage() {
   const [activeLogs, setActiveLogs] = useState<string[]>([]);
   const [logIndex, setLogIndex] = useState<number>(0);
   const [expandedCandidateId, setExpandedCandidateId] = useState<string | null>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   // Dynamic Weighting States (balanced automatically to sum to 100%)
   const [skillsWeight, setSkillsWeight] = useState<number>(40);
@@ -555,6 +556,10 @@ export default function LandingPage() {
         style={{ width: `${scrollProgress}%` }}
       />
 
+      {/* Ambient background glows */}
+      <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none z-0" />
+      <div className="absolute top-[60%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[130px] pointer-events-none z-0" />
+
       {/* SaaS Grid Background Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0e1526_1px,transparent_1px),linear-gradient(to_bottom,#0e1526_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 z-0 pointer-events-none" suppressHydrationWarning />
 
@@ -562,7 +567,14 @@ export default function LandingPage() {
       <header className="w-full border-b border-slate-800 bg-[#060913]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center group">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/15 group-hover:scale-105 transition-transform duration-300">
+              <svg className="w-4.5 h-4.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" opacity="0.4" />
+                <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
+                <path d="M12 2V6M12 18V22M2 12H6M18 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
             <span className="text-xl sm:text-2xl xl:text-[26px] font-bold tracking-tight text-white transition-all">
               Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
             </span>
@@ -748,8 +760,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* Pillar 1 - Wide layout */}
             <div className="lg:col-span-7 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
+              {/* Corner Glow Flare */}
+              <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-blue-500/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+              
               <div>
-                <div className="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 mb-6">
+                <div className="w-11 h-11 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 mb-6 group-hover:scale-110 group-hover:border-blue-500/40 group-hover:bg-blue-500/20 transition-all duration-300">
                   <BrainCircuit className="w-5.5 h-5.5" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">Semantic NLP Evaluation</h3>
@@ -759,7 +774,7 @@ export default function LandingPage() {
               </div>
               
               {/* Graphic element for NLP evaluation */}
-              <div className="mt-8 bg-slate-950 border border-slate-850 rounded-xl p-4.5 font-mono text-xs text-slate-500 space-y-3 relative overflow-hidden">
+              <div className="mt-8 bg-slate-950 border border-slate-850 rounded-xl p-4.5 font-mono text-xs text-slate-500 space-y-3 relative overflow-hidden group-hover:border-slate-800 transition-colors">
                 <div className="flex justify-between items-center border-b border-slate-900 pb-2">
                   <span className="text-[10px] text-blue-500 uppercase tracking-wider font-bold">Semantic Distance Analyzer</span>
                   <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px] font-bold">Cosine Similarity: 0.94</span>
@@ -774,7 +789,7 @@ export default function LandingPage() {
                     <span className="text-slate-300">"AI/ML Research Lead"</span>
                   </div>
                   <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden mt-1">
-                    <div className="bg-blue-500 h-full w-[94%]" />
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-[94%] group-hover:from-blue-400 group-hover:to-indigo-400 transition-all duration-300" />
                   </div>
                 </div>
               </div>
@@ -782,8 +797,11 @@ export default function LandingPage() {
 
             {/* Pillar 2 - Tall layout */}
             <div className="lg:col-span-5 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
+              {/* Corner Glow Flare */}
+              <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-indigo-500/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
               <div>
-                <div className="w-11 h-11 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mb-6">
+                <div className="w-11 h-11 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mb-6 group-hover:scale-110 group-hover:border-indigo-500/40 group-hover:bg-indigo-500/20 transition-all duration-300">
                   <Terminal className="w-5.5 h-5.5" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">SSE Real-Time Logs</h3>
@@ -791,17 +809,20 @@ export default function LandingPage() {
                   Watch the recruitment engine extract and score profiles instantly. Streaming progress logs provide high-precision feedback as parsing occurs.
                 </p>
               </div>
-              <div className="mt-8 rounded-xl bg-[#080c18] border border-slate-850 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5 overflow-hidden max-h-[110px]">
-                <div className="text-slate-600">&gt; Starting stream server...</div>
-                <div className="text-blue-400">&gt; event: parse_started | total_resumes: 12</div>
-                <div className="text-emerald-400">&gt; event: parse_success | candidate: Alice</div>
+              <div className="mt-8 rounded-xl bg-[#080c18] border border-slate-850 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5 overflow-hidden max-h-[110px] group-hover:border-slate-800 transition-colors">
+                <div className="text-slate-650 group-hover:text-slate-500 transition-colors">&gt; Starting stream server...</div>
+                <div className="text-blue-500 group-hover:text-blue-400 transition-colors">&gt; event: parse_started | total_resumes: 12</div>
+                <div className="text-emerald-500 group-hover:text-emerald-400 transition-colors">&gt; event: parse_success | candidate: Alice</div>
               </div>
             </div>
 
             {/* Pillar 3 - Tall layout */}
             <div className="lg:col-span-5 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
+              {/* Corner Glow Flare */}
+              <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-emerald-500/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
               <div>
-                <div className="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 mb-6">
+                <div className="w-11 h-11 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400 mb-6 group-hover:scale-110 group-hover:border-emerald-500/40 group-hover:bg-emerald-500/20 transition-all duration-300">
                   <ShieldCheck className="w-5.5 h-5.5" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">OAuth Cryptographic Security</h3>
@@ -809,16 +830,19 @@ export default function LandingPage() {
                   Integrates seamlessly with verified Google Authentication (OAuth2) to guarantee corporate logins and protect proprietary workspace screening records.
                 </p>
               </div>
-              <div className="mt-8 flex items-center gap-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+              <div className="mt-8 flex items-center gap-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3.5 group-hover:border-emerald-500/20 transition-colors">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
                 <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase">Secure OAuth Pipeline Enabled</span>
               </div>
             </div>
 
             {/* Pillar 4 - Wide layout */}
             <div className="lg:col-span-7 glass-card p-8 rounded-2xl border border-slate-800 bg-[#0d1326] text-left relative overflow-hidden group flex flex-col justify-between min-h-[340px]">
+              {/* Corner Glow Flare */}
+              <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-purple-500/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
               <div>
-                <div className="w-11 h-11 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-400 mb-6">
+                <div className="w-11 h-11 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-400 mb-6 group-hover:scale-110 group-hover:border-purple-500/40 group-hover:bg-purple-500/20 transition-all duration-300">
                   <Sparkles className="w-5.5 h-5.5" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-500 transition-colors">Specialized Skills Indexing</h3>
@@ -827,10 +851,10 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap gap-2">
-                <span className="badge-agent text-xs py-1.5 px-3 rounded-lg font-semibold">Subagent-Driven-Development</span>
-                <span className="badge-seo text-xs py-1.5 px-3 rounded-lg font-semibold">SEO Technical</span>
-                <span className="badge-backend text-xs py-1.5 px-3 rounded-lg font-semibold">Supabase Postgres</span>
-                <span className="badge-frontend text-xs py-1.5 px-3 rounded-lg font-semibold">3D Web / Scroll Experience</span>
+                <span className="badge-agent text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">Subagent-Driven-Development</span>
+                <span className="badge-seo text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">SEO Technical</span>
+                <span className="badge-backend text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">Supabase Postgres</span>
+                <span className="badge-frontend text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">3D Web / Scroll Experience</span>
               </div>
             </div>
           </div>
@@ -874,11 +898,42 @@ export default function LandingPage() {
                   </div>
                 </div>
 
+                {/* Active Template Job Description Box */}
+                <div className="bg-[#080c18] border border-slate-850 p-4 rounded-xl space-y-2 text-left transition-all">
+                  <div className="flex items-center gap-2 text-slate-450">
+                    <FileText className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">AI Target Job Profile</span>
+                  </div>
+                  <p className="text-slate-300 text-xs leading-relaxed italic">
+                    "{activeTemplate.description}"
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 pt-1.5">
+                    {activeTemplate.requiredSkills.map(s => (
+                      <span key={s} className="px-2 py-0.5 rounded text-[9.5px] font-semibold bg-slate-900 border border-slate-800 text-slate-400">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Dynamic Scoring Weights Control */}
                 <div className="space-y-4 pt-1 bg-[#080c18] border border-slate-850 p-4 rounded-xl">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Adjust Scoring Weights</span>
-                    <span className="text-[9px] font-semibold text-blue-500 font-mono tracking-widest uppercase">Total: 100%</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setSkillsWeight(40);
+                          setSemanticWeight(40);
+                          setExperienceWeight(20);
+                        }}
+                        disabled={isSimulating}
+                        className="text-[9px] font-bold text-slate-400 hover:text-white transition-colors uppercase tracking-wider bg-slate-900 border border-slate-800 px-2 py-0.5 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Reset
+                      </button>
+                      <span className="text-[9px] font-semibold text-blue-500 font-mono tracking-widest uppercase">Total: 100%</span>
+                    </div>
                   </div>
                   
                   {/* Skills Weight Slider */}
@@ -894,7 +949,7 @@ export default function LandingPage() {
                       value={skillsWeight}
                       onChange={(e) => handleSkillsWeightChange(parseInt(e.target.value))}
                       disabled={isSimulating}
-                      className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      className="w-full premium-range cursor-pointer"
                     />
                   </div>
 
@@ -911,7 +966,7 @@ export default function LandingPage() {
                       value={semanticWeight}
                       onChange={(e) => handleSemanticWeightChange(parseInt(e.target.value))}
                       disabled={isSimulating}
-                      className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      className="w-full premium-range cursor-pointer"
                     />
                   </div>
 
@@ -928,7 +983,7 @@ export default function LandingPage() {
                       value={experienceWeight}
                       onChange={(e) => handleExperienceWeightChange(parseInt(e.target.value))}
                       disabled={isSimulating}
-                      className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      className="w-full premium-range cursor-pointer"
                     />
                   </div>
                 </div>
@@ -1096,6 +1151,154 @@ export default function LandingPage() {
               </div>
 
             </div>
+          </div>
+        </section>
+
+        {/* Section: Recruiting Testimonials */}
+        <section className="space-y-16">
+          <div className="text-center space-y-4 max-w-2xl mx-auto">
+            <span className="inline-block text-[10px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/15 px-3 py-1 rounded-md">RECRUITER FEEDBACK</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Trusted By Fast-Growing Talent Teams</h2>
+            <p className="text-slate-400 text-sm">
+              Read how enterprise recruiters and builders optimize their candidate pipelines with HireGrid.io.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Testimonial 1 */}
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-blue-500/5 rounded-full blur-[40px] pointer-events-none" />
+              <div>
+                <div className="flex gap-1 mb-4 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-slate-300 text-xs leading-relaxed italic mb-6">
+                  "HireGrid's semantic parsing engine cut our screening time down by 80%. We were able to identify niche Rust/Go back-end developers with perfect contextual mapping within minutes instead of hours."
+                </p>
+              </div>
+              <div className="flex items-center gap-3 border-t border-slate-850 pt-4">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/20 shrink-0">
+                  SJ
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block">Sarah Jenkins</span>
+                  <span className="text-[10px] text-slate-500 block">Head of Talent Acquisition • Stripe</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial 2 */}
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-indigo-500/5 rounded-full blur-[40px] pointer-events-none" />
+              <div>
+                <div className="flex gap-1 mb-4 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-slate-300 text-xs leading-relaxed italic mb-6">
+                  "Adjusting the parsing weights on the fly allowed us to pivot from evaluating pure skills to focusing on years-of-experience alignment. Highly recommended for scaling startups."
+                </p>
+              </div>
+              <div className="flex items-center gap-3 border-t border-slate-850 pt-4">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/20 shrink-0">
+                  MV
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block">Marcus Vance</span>
+                  <span className="text-[10px] text-slate-500 block">Recruiting Lead • Vercel</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial 3 */}
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-emerald-500/5 rounded-full blur-[40px] pointer-events-none" />
+              <div>
+                <div className="flex gap-1 mb-4 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-slate-300 text-xs leading-relaxed italic mb-6">
+                  "Google OAuth integration combined with a Neon PostgreSQL DB keeps our corporate candidate data secure and cryptographically isolated. A game changer for enterprise HR security."
+                </p>
+              </div>
+              <div className="flex items-center gap-3 border-t border-slate-850 pt-4">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20 shrink-0">
+                  ER
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block">Dr. Elena Rostova</span>
+                  <span className="text-[10px] text-slate-500 block">Director of People Operations • OpenAI</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Recruiter FAQ Accordion */}
+        <section className="space-y-16">
+          <div className="text-center space-y-4 max-w-2xl mx-auto">
+            <span className="inline-block text-[10px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/15 px-3 py-1 rounded-md">COMMON INQUIRIES</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Frequently Asked Questions</h2>
+            <p className="text-slate-400 text-sm">
+              Answers to technical queries about our AI semantic parsing engine, data security, and setup.
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {[
+              {
+                q: "How does the semantic NLP parsing work?",
+                a: "Unlike simple keyword-based matching platforms, HireGrid runs candidate CVs through a sentence-transformers embedding model. This enables us to detect semantic similarity (e.g., matching 'Machine Learning' with 'Deep Learning Architectures' even if the exact keyword is missing)."
+              },
+              {
+                q: "Is our candidate database secure and compliant?",
+                a: "Yes, HireGrid secures all corporate data behind strict user-authenticated schemas using secure Neon PostgreSQL instances. We utilize Google OAuth2 for verified logins and do not train models on your uploaded CV files."
+              },
+              {
+                q: "Can I customize the scoring criteria weightings?",
+                a: "Absolutely. As shown in our interactive demo, recruiters can distribute score weighting dynamically across Exact Skills Alignment, NLP Semantic Similarity, and Years of Experience Fit to tailor rankings to each unique role."
+              },
+              {
+                q: "How long does the parser take to process a resume?",
+                a: "The system utilizes optimized Server-Sent Events (SSE) to stream live progress. Typically, a batch of 10 resumes is fully processed, parsed, and graded in under 15 seconds."
+              }
+            ].map((faq, idx) => {
+              const isOpen = openFaqIndex === idx;
+              return (
+                <div 
+                  key={idx} 
+                  className="rounded-xl border border-slate-800 bg-[#0d1326] overflow-hidden transition-all duration-300"
+                >
+                  <button
+                    onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                    className="w-full py-5 px-6 flex items-center justify-between text-left font-semibold text-white hover:text-blue-400 transition-colors text-sm"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-400' : ''}`} />
+                  </button>
+                  <div 
+                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                      isOpen ? 'max-h-[300px] border-t border-slate-850' : 'max-h-0'
+                    }`}
+                  >
+                    <p className="p-6 text-slate-400 text-xs leading-relaxed bg-slate-950/40">
+                      {faq.a}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 
