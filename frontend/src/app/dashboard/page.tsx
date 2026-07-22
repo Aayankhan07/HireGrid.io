@@ -434,40 +434,79 @@ export default function Home() {
               {/* KPI Summary Block */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Average Fit KPI */}
-                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
-                  <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-450 border border-slate-800 shrink-0">
-                    <TrendingUp className="w-5 h-5" />
+                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-5 bg-[#0d1326] shadow-md hover:bg-[#111830] hover:border-slate-700 transition-all duration-300 group">
+                  <div className="relative shrink-0">
+                    <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="circle-progress-blue"
+                        strokeDasharray={`${avgScore.toFixed(0)}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                    </div>
                   </div>
-                  <div>
+                  <div className="text-left min-w-0">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Average Fit Score</span>
-                    <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{avgScore.toFixed(1)}%</h3>
-                    <p className="text-[9px] text-slate-500 mt-0.5">Overall candidate relevance index</p>
+                    <h3 className="text-2xl font-black text-white mt-1 leading-none">{avgScore.toFixed(1)}%</h3>
+                    <p className="text-[10px] text-slate-500 mt-1 truncate">Overall candidate relevance</p>
                   </div>
                 </div>
 
                 {/* Top Match KPI */}
-                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
-                  <div className="w-12 h-12 rounded-lg bg-emerald-500/5 flex items-center justify-center text-emerald-450 border border-slate-800 shrink-0">
-                    <UserCheck className="w-5 h-5" />
+                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-5 bg-[#0d1326] shadow-md hover:bg-[#111830] hover:border-slate-700 transition-all duration-300 group">
+                  <div className="relative shrink-0">
+                    <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="circle-progress-emerald"
+                        strokeDasharray={`${maxScore.toFixed(0)}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <UserCheck className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                    </div>
                   </div>
-                  <div>
+                  <div className="text-left min-w-0">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Maximum Match Score</span>
-                    <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{maxScore.toFixed(0)}%</h3>
-                    <p className="text-[9px] text-slate-500 mt-0.5">Best fit prospective profile</p>
+                    <h3 className="text-2xl font-black text-white mt-1 leading-none">{maxScore.toFixed(0)}%</h3>
+                    <p className="text-[10px] text-slate-500 mt-1 truncate">Best fit prospective profile</p>
                   </div>
                 </div>
 
                 {/* Shortlist Funnel Yield */}
-                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
-                  <div className="w-12 h-12 rounded-lg bg-indigo-500/5 flex items-center justify-center text-indigo-455 border border-slate-800 shrink-0">
-                    <BookmarkCheck className="w-5 h-5" />
+                <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-5 bg-[#0d1326] shadow-md hover:bg-[#111830] hover:border-slate-700 transition-all duration-300 group">
+                  <div className="relative shrink-0">
+                    <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="circle-progress-indigo"
+                        strokeDasharray={`${totalCount > 0 ? ((shortlistCount / totalCount) * 100).toFixed(0) : 0}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <BookmarkCheck className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    </div>
                   </div>
-                  <div>
+                  <div className="text-left min-w-0">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Pipeline Yield</span>
-                    <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">
+                    <h3 className="text-2xl font-black text-white mt-1 leading-none text-left">
                       {totalCount > 0 ? ((shortlistCount / totalCount) * 100).toFixed(0) : 0}%
                     </h3>
-                    <p className="text-[9px] text-slate-500 mt-0.5">{shortlistCount} of {totalCount} short-listed</p>
+                    <p className="text-[10px] text-slate-500 mt-1 truncate">{shortlistCount} of {totalCount} short-listed</p>
                   </div>
                 </div>
               </div>
