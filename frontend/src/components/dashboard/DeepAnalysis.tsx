@@ -124,27 +124,40 @@ export default function DeepAnalysis({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Analytics Card: Skills Match Frequencies */}
-        <div className="p-6 rounded-xl border border-slate-800 bg-[#0d1326] space-y-4">
+        <div className="p-6 rounded-xl border border-slate-800 bg-[#0d1326] space-y-4 shadow-lg">
           <div className="text-left">
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Required Skills Matching Rate</h4>
-            <p className="text-xs text-slate-500 mt-1">Which required skills appear most frequently across all candidates.</p>
+            <p className="text-xs text-slate-500 mt-1">Appearance rate of required skills across scanned profiles.</p>
           </div>
 
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4 pt-3">
             {skillMetrics.map((sm, idx) => (
-              <div key={idx} className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-slate-300 font-medium">{sm.name}</span>
-                  <span className="text-slate-450">{sm.count} / {totalCount} ({sm.percentage.toFixed(0)}%)</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden">
-                  <div 
-                    className="h-full rounded-full bg-blue-500"
-                    style={{ width: `${sm.percentage}%` }}
-                  />
+              <div key={idx} className="flex items-center gap-3 group">
+                <span className="w-24 text-xs font-bold text-slate-300 text-right truncate group-hover:text-white transition-colors" title={sm.name}>
+                  {sm.name}
+                </span>
+                <div className="flex-1">
+                  <div className="relative w-full h-5.5 rounded bg-slate-950/60 border border-slate-850 overflow-hidden flex items-center">
+                    <div 
+                      className="h-full bg-blue-600/80 rounded-r border-r border-blue-400/30 transition-all duration-500"
+                      style={{ width: `${sm.percentage}%` }}
+                    />
+                    <span className="absolute right-3 text-[10px] font-bold font-mono text-slate-350">
+                      {sm.count} / {totalCount} ({sm.percentage.toFixed(0)}%)
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
+            
+            {/* Grid axis lines at the bottom */}
+            <div className="flex pl-27 justify-between text-[9px] font-mono text-slate-550 pt-2.5 border-t border-slate-850/60">
+              <span>0%</span>
+              <span>25%</span>
+              <span>50%</span>
+              <span>75%</span>
+              <span>100%</span>
+            </div>
           </div>
         </div>
 
