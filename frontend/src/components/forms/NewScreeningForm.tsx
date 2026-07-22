@@ -1,7 +1,51 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { X, Upload, Plus, FileText, Trash2, Sliders, Briefcase, GraduationCap, MapPin, Globe, CheckSquare } from 'lucide-react';
+import { X, Upload, Plus, FileText, Trash2, Sliders, Briefcase, GraduationCap, MapPin, Globe, CheckSquare, Sparkles } from 'lucide-react';
+
+interface AIJobPreset {
+  title: string;
+  skills: string;
+  yoe: number;
+  education: string;
+  location: string;
+  description: string;
+}
+
+const AI_ROLE_PRESETS: AIJobPreset[] = [
+  {
+    title: "Senior Full Stack Engineer",
+    skills: "React, TypeScript, Node.js, Next.js, PostgreSQL",
+    yoe: 5,
+    education: "Bachelor",
+    location: "Remote",
+    description: "Seeking a Senior Full Stack Engineer experienced in React, TypeScript, Node.js, and PostgreSQL to design and scale SaaS applications."
+  },
+  {
+    title: "AI/ML Research Scientist",
+    skills: "Python, PyTorch, Deep Learning, NLP, Transformers",
+    yoe: 4,
+    education: "Master",
+    location: "San Francisco",
+    description: "Seeking an AI/ML Scientist to develop deep learning architectures, fine-tune transformer models, and optimize training pipelines."
+  },
+  {
+    title: "Lead Product Manager",
+    skills: "Roadmap, Agile, Scrum, Jira, PRD",
+    yoe: 6,
+    education: "Bachelor",
+    location: "New York",
+    description: "Seeking a Lead PM to drive product discovery, define roadmaps, write technical PRDs, and orchestrate agile scrum rituals with engineering."
+  },
+  {
+    title: "Technical SEO Director",
+    skills: "SEO, Technical Audit, Schema, Crawl Budget, Content Briefs",
+    yoe: 7,
+    education: "Bachelor",
+    location: "Remote",
+    description: "Seeking a Technical SEO Director to lead site architecture audits, programmatic schema automation, and search performance strategy."
+  }
+];
 
 interface NewScreeningFormProps {
   onClose: () => void;
@@ -65,6 +109,15 @@ export default function NewScreeningForm({
     setFiles(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const applyPreset = (preset: AIJobPreset) => {
+    setJobTitle(preset.title);
+    setRequiredSkills(preset.skills);
+    setRequiredExperienceYears(preset.yoe);
+    setRequiredEducation(preset.education);
+    setPreferredLocation(preset.location);
+    setJobDescription(preset.description);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (files.length === 0) {
@@ -118,6 +171,27 @@ export default function NewScreeningForm({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          
+          {/* AI Role Presets quick toolbar */}
+          <div className="p-4 rounded-xl border border-slate-800 bg-[#080c18] space-y-2 text-left">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">AI Role Presets (One-Click Auto Fill)</span>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {AI_ROLE_PRESETS.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => applyPreset(preset)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-800 bg-[#0d1326] text-xs font-semibold text-slate-300 hover:text-white hover:border-blue-500/50 hover:bg-[#111830] transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>{preset.title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Left side parameters */}
@@ -254,9 +328,11 @@ export default function NewScreeningForm({
                 onDragLeave={handleDrag}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`flex-1 min-h-[160px] border border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all cursor-pointer ${
+                className={`flex-1 min-h-[160px] border border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all duration-250 cursor-pointer ${
                   isDragActive 
                     ? 'border-blue-500 bg-blue-600/10' 
+                    : files.length > 0
+                    ? 'border-blue-500/50 bg-[#080c18] hover:bg-[#0c142c]'
                     : 'border-slate-800 hover:border-slate-700 bg-[#080c18] hover:bg-[#0c142c]'
                 }`}
               >
@@ -268,11 +344,26 @@ export default function NewScreeningForm({
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <div className="w-12 h-12 rounded-lg bg-[#060913] flex items-center justify-center mb-3 border border-slate-850">
-                  <Upload className="w-5 h-5 text-slate-400" />
+                <div className={`w-12 h-12 rounded-lg bg-[#060913] flex items-center justify-center mb-3 border border-slate-850 ${
+                  files.length > 0 ? 'text-blue-400 border-blue-500/20' : 'text-slate-450'
+                }`}>
+                  <Upload className={`w-5 h-5 transition-transform duration-200 ${
+                    isDragActive ? 'translate-y-[-4px]' : files.length > 0 ? 'scale-110' : ''
+                  }`} />
                 </div>
-                <p className="text-sm font-semibold text-white">Click or drag PDF resumes here</p>
-                <p className="text-xs text-slate-500 mt-1">Upload multiple resume PDFs to rank simultaneously</p>
+                {files.length > 0 ? (
+                  <>
+                    <p className="text-sm font-semibold text-blue-400">
+                      {files.length} Resume{files.length > 1 ? 's' : ''} Staged
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">Click or drag more files to add</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-white">Click or drag PDF resumes here</p>
+                    <p className="text-xs text-slate-500 mt-1">Upload multiple resume PDFs to rank simultaneously</p>
+                  </>
+                )}
               </div>
 
               {/* Uploaded File List */}
