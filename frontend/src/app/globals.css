@@ -251,3 +251,26 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.25);
 }
 
+/* Clean SVG progress circle tracking */
+.circle-bg {
+  fill: none;
+  stroke: #161f38;
+}
+.circle-progress-blue {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
+.circle-progress-emerald {
+  fill: none;
+  stroke: #10b981;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
+.circle-progress-indigo {
+  fill: none;
+  stroke: #6366f1;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
