@@ -103,8 +103,11 @@ async def signup(payload: UserSignup):
     # Hash password
     h_hash, h_salt = hash_password(payload.password)
     
-    # Force default standard role for self-signups to prevent elevation of privilege
-    forced_role = "Recruiter"
+    # Validate role to prevent elevation of privilege but allow valid choices
+    valid_roles = {"Recruitment Lead", "Recruitment Director", "Technical Recruiter", "HR Manager", "Recruiter"}
+    user_role = payload.role.strip()
+    if user_role not in valid_roles:
+        user_role = "Recruitment Lead"
     
     # Create user
     new_user = db_create_user(
@@ -112,7 +115,7 @@ async def signup(payload: UserSignup):
         name=payload.name,
         password_hash=h_hash,
         password_salt=h_salt,
-        role=forced_role
+        role=user_role
     )
     if not new_user:
         raise HTTPException(status_code=500, detail="Failed to create user")
