@@ -1,3 +1,9 @@
+import os
+# Mask potentially invalid/expired system HF tokens to prevent 401 crashes on public models
+os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
+os.environ["HF_TOKEN"] = ""
+os.environ["HUGGING_FACE_HUB_TOKEN"] = ""
+
 from sentence_transformers import SentenceTransformer, util
 import torch
 
