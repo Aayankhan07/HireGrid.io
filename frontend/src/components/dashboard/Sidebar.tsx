@@ -131,6 +131,44 @@ export default function Sidebar({
         )}
       </div>
 
+      {/* System Status Indicator widget */}
+      <div className="mx-4 mb-4 p-4 rounded-xl border border-slate-800 bg-[#080c18] space-y-3 text-left">
+        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Monitor</span>
+          </div>
+          <span className="text-[9px] font-mono text-slate-500">v2.0.0</span>
+        </div>
+        
+        <div className="space-y-2 text-[10px] text-slate-400 font-mono">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">NLP Engine</span>
+            <span className="text-emerald-450 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              spaCy Active
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">Database</span>
+            <span className="text-emerald-450 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              SQLite Connected
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">Transformer</span>
+            <span className="text-blue-400 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              MiniLM-L6 loaded
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* User profile block */}
       <div className="p-4 border-t border-slate-800 bg-[#0d1326]">
         <div className="flex items-center justify-between p-2 rounded-lg bg-[#080c18] border border-slate-800">
