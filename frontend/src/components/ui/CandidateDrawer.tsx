@@ -340,16 +340,20 @@ export default function CandidateDrawer({
               <p className="text-xs text-slate-500 mt-1">Component details parsed against target parameters.</p>
             </div>
             
-            <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-4 text-left">
+            <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-4 text-left shadow-inner">
               {breakdownItems.map((item, idx) => (
-                <div key={idx} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-400">{item.label}</span>
-                    <span className="text-slate-200">{item.value.toFixed(0)}%</span>
+                <div key={idx} className="space-y-2 group">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-slate-400 group-hover:text-slate-200 transition-colors">{item.label}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
+                      item.value >= 80 ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' :
+                      item.value >= 60 ? 'bg-blue-500/10 text-blue-450 border border-blue-500/20' :
+                      'bg-slate-900 text-slate-500 border border-slate-800'
+                    }`}>{item.value.toFixed(0)}%</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-950 overflow-hidden">
+                  <div className="w-full h-2.5 rounded-full bg-slate-950 overflow-hidden border border-slate-900">
                     <div 
-                      className={`h-full rounded-full ${getProgressBarColor(item.value)}`}
+                      className={`h-full rounded-full transition-all duration-500 ${getProgressBarColor(item.value)}`}
                       style={{ width: `${item.value}%` }}
                     />
                   </div>
