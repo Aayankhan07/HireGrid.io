@@ -153,15 +153,21 @@ export default function Home() {
           });
           if (response.ok) {
             const data = await response.json();
-            setScreenings(data);
-            if (data.length > 0) {
+            if (data && data.length > 0) {
+              setScreenings(data);
               setActiveId(data[0].id);
             } else {
-              setActiveId(null);
+              setScreenings(SEED_SCREENINGS);
+              setActiveId(SEED_SCREENINGS[0].id);
             }
+          } else {
+            setScreenings(SEED_SCREENINGS);
+            setActiveId(SEED_SCREENINGS[0].id);
           }
         } catch (err) {
           console.error("Error loading screenings:", err);
+          setScreenings(SEED_SCREENINGS);
+          setActiveId(SEED_SCREENINGS[0].id);
         }
       };
       fetchScreenings();
