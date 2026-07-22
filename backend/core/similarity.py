@@ -23,8 +23,8 @@ def compute_semantic_similarity(job_description: str, candidate_summary: str) ->
     if any(a in candidate_summary.lower() for a in _CV_ANCHORS) and "computer vision" in job_description.lower():
         candidate_summary += " computer vision image processing object detection"
 
-    job_embedding  = model.encode(job_description,   convert_to_tensor=True)
-    cand_embedding = model.encode(candidate_summary, convert_to_tensor=True)
+    job_embedding  = model.encode([job_description],   convert_to_tensor=True)
+    cand_embedding = model.encode([candidate_summary], convert_to_tensor=True)
     cosine_score   = util.pytorch_cos_sim(job_embedding, cand_embedding)
     raw_score      = float(cosine_score[0][0]) * 100.0
 
@@ -48,26 +48,31 @@ def compute_batch_skill_similarity(required_skills: list, candidate_skills: list
     if not required_skills:
         return 100.0
 
-    # Build a dense, noise-free candidate context
-    skills_str    = " ".join(candidate_skills) if candidate_skills else ""
-    summary_str   = candidate_summary[:300]    if candidate_summary else ""
-    dense_context = (skills_str + " " + summary_str).strip()
+    # Build a list of candidate context items for semantic matching
+    cand_items = [s.strip() for s in candidate_skills if s.strip()]
+    
+    summary_str = candidate_summary[:300].strip() if candidate_summary else ""
+    if summary_str:
+        cand_items.append(summary_str)
 
-    if not dense_context:
+    if not cand_items:
         return 0.0
 
-    # Domain-anchor injection: if the candidate uses research vocabulary, expand
-    # the context with operational CV terminology so embeddings can bridge the gap.
-    if any(a in dense_context.lower() for a in _CV_ANCHORS):
-        dense_context += " computer vision image processing object detection opencv yolo"
+    # Domain-anchor injection check: if any CV research anchor is present in the context,
+    # append operational domain anchors to cand_items
+    full_context_str = " ".join(cand_items).lower()
+    if any(a in full_context_str for a in _CV_ANCHORS):
+        cand_items.extend(["computer vision", "image processing", "object detection", "opencv", "yolo"])
 
     req_embeddings = model.encode(required_skills, convert_to_tensor=True)
-    cand_embedding = model.encode([dense_context], convert_to_tensor=True)
+    # Shape: (num_candidate_items, D)
+    cand_embeddings = model.encode(cand_items, convert_to_tensor=True)
 
-    # Shape: (num_required_skills, 1)
-    # max-then-mean: each required skill takes its best cosine match in the
-    # dense context, then we average across all required skills.
-    cosine_scores = util.pytorch_cos_sim(req_embeddings, cand_embedding)
+    # Shape: (num_required_skills, num_candidate_items)
+    cosine_scores = util.pytorch_cos_sim(req_embeddings, cand_embeddings)
+    
+    # max-then-mean: each required skill takes its best cosine match among candidate items,
+    # then we average across all required skills.
     max_scores, _ = torch.max(cosine_scores, dim=1)
     average_match = torch.mean(max_scores)
     raw_score     = float(average_match) * 100.0
