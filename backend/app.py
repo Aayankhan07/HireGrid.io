@@ -731,6 +731,49 @@ async def analyze_resumes_stream(
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
+@app.get("/api/screenings/{screening_id}/report")
+async def get_screening_report(screening_id: str, user: dict = Depends(get_current_user)):
+    sc = db_get_screening_details(screening_id, user["email"])
+    if not sc:
+        raise HTTPException(status_code=404, detail="Screening not found")
+    
+    candidates = sc.get("candidates", [])
+    total_count = len(candidates)
+    if total_count == 0:
+        avg_score = 0.0
+        max_score = 0.0
+        shortlist_count = 0
+    else:
+        scores = [c["score"] for c in candidates]
+        avg_score = round(sum(scores) / total_count, 1)
+        max_score = round(max(scores), 1)
+        shortlist_count = sum(1 for c in candidates if c["score"] >= 80)
+        
+    report = {
+        "title": sc.get("job_title"),
+        "screening_id": screening_id,
+        "created_at": sc.get("created_at"),
+        "total_candidates": total_count,
+        "metrics": {
+            "average_score": avg_score,
+            "max_score": max_score,
+            "shortlist_yield_percent": round((shortlist_count / total_count * 100), 1) if total_count > 0 else 0
+        },
+        "required_skills": sc.get("required_skills", []),
+        "top_candidates": [
+            {
+                "name": c["candidate_name"],
+                "score": c["score"],
+                "yoe": c.get("extracted_info", {}).get("experience_years", 0),
+                "matched_skills": c["matched_skills"],
+                "summary": c["summary"]
+            }
+            for c in candidates[:5]
+        ]
+    }
+    return report
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
