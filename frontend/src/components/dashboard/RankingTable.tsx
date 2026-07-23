@@ -1,18 +1,20 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, Filter, Download, Search, ArrowUpDown, Layers } from 'lucide-react';
+import { ChevronRight, Filter, Download, Search, ArrowUpDown, Layers, UserCheck, UserX } from 'lucide-react';
 import { Candidate } from '@/types';
 import CandidateComparisonModal from '@/components/ui/CandidateComparisonModal';
 
 interface RankingTableProps {
   candidates: Candidate[];
   onSelectCandidate: (candidate: Candidate) => void;
+  onUpdateCandidate?: (updatedCandidate: Candidate) => void;
 }
 
 export default function RankingTable({
   candidates,
-  onSelectCandidate
+  onSelectCandidate,
+  onUpdateCandidate
 }: RankingTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<'score-desc' | 'score-asc' | 'yoe-desc' | 'name-asc'>('score-desc');
@@ -65,6 +67,43 @@ export default function RankingTable({
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === filteredCandidates.length && filteredCandidates.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredCandidates.map(c => c.candidate_id));
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedIds.length === 0) return;
+    const token = sessionStorage.getItem('hiregrid_io_token') || '';
+
+    for (const id of selectedIds) {
+      try {
+        await fetch(`/api/candidates/${id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+      } catch (err) {
+        console.error("Bulk status update error:", err);
+      }
+    }
+
+    if (onUpdateCandidate) {
+      candidates.forEach(c => {
+        if (selectedIds.includes(c.candidate_id)) {
+          onUpdateCandidate({ ...c, status: newStatus });
+        }
+      });
+    }
+    setSelectedIds([]);
   };
 
   const selectedCandidatesList = useMemo(() => {
@@ -121,6 +160,26 @@ export default function RankingTable({
         {/* Action controls */}
         <div className="flex flex-wrap items-center gap-3 justify-end">
           
+          {/* Bulk Action Buttons */}
+          {selectedIds.length > 0 && (
+            <>
+              <button
+                onClick={() => handleBulkStatusChange('Shortlisted')}
+                className="py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-500/20 transition-all cursor-pointer animate-fade-in"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Shortlist ({selectedIds.length})</span>
+              </button>
+              <button
+                onClick={() => handleBulkStatusChange('Rejected')}
+                className="py-2 px-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-1.5 hover:bg-red-500/20 transition-all cursor-pointer animate-fade-in"
+              >
+                <UserX className="w-3.5 h-3.5" />
+                <span>Reject ({selectedIds.length})</span>
+              </button>
+            </>
+          )}
+
           {/* Compare Button */}
           {selectedIds.length >= 2 && (
             <button
@@ -165,7 +224,15 @@ export default function RankingTable({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-widest bg-[#060913]/30">
-                <th className="py-4.5 pl-4 pr-2 text-center w-10">Select</th>
+                <th className="py-4.5 pl-4 pr-2 text-center w-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === filteredCandidates.length && filteredCandidates.length > 0}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 rounded bg-[#060913] border-slate-700 text-blue-500 cursor-pointer focus:ring-0"
+                    title="Select All Candidates"
+                  />
+                </th>
                 <th className="py-4.5 px-3 text-center w-14">Rank</th>
                 <th className="py-4.5 px-4 min-w-[200px]">Candidate Details</th>
                 <th className="py-4.5 px-4 w-[160px]">Match Score</th>
