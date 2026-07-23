@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: email.trim().toLowerCase(),
           password: password,
         }),
+      }).catch(() => {
+        throw new Error('Backend service unavailable. Please make sure start.bat is running on http://localhost:8000.');
       });
 
       if (!response.ok) {
@@ -107,6 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: name.trim() || 'Alex Sterling',
           role: role.trim() || 'Recruitment Lead',
         }),
+      }).catch(() => {
+        throw new Error('Backend service unavailable. Please make sure start.bat is running on http://localhost:8000.');
       });
 
       if (!response.ok) {
@@ -114,7 +118,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(errorData.detail || 'Registration failed. Please check details.');
       }
 
+      const userData = await response.json();
+      const authenticatedUser: User = {
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+      };
+
+      sessionStorage.setItem('hiregrid_io_user', JSON.stringify(authenticatedUser));
+      if (userData.token) {
+        sessionStorage.setItem('hiregrid_io_token', userData.token);
+      }
+      setUser(authenticatedUser);
       setLoading(false);
+      router.push('/dashboard');
       return true;
     } catch (err: any) {
       setLoading(false);
