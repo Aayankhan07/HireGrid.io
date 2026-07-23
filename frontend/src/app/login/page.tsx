@@ -184,6 +184,12 @@ export default function LoginPage() {
     }
   };
 
+  const handleFillDemo = () => {
+    setEmail('admin@hiregrid.io');
+    setPassword('password123');
+    setError('');
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -208,10 +214,6 @@ export default function LoginPage() {
       }
 
       await signup(email, password, name, role);
-      setSuccessMsg('Account registered successfully! You can now log in.');
-      setActiveTab('signin');
-      setPassword('');
-      setLoading(false);
     } catch (err: any) {
       setError(err.message || 'Failed to register account.');
       setLoading(false);
@@ -433,6 +435,18 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                  </div>
+
+                  {/* Demo Credentials Auto Fill Helper */}
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <span className="text-slate-500 text-[11px]">Testing demo account?</span>
+                    <button
+                      type="button"
+                      onClick={handleFillDemo}
+                      className="text-blue-400 font-semibold hover:underline cursor-pointer text-xs"
+                    >
+                      Fill Demo Admin (admin@hiregrid.io)
+                    </button>
                   </div>
 
                   <button
