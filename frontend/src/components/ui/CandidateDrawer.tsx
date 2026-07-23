@@ -14,7 +14,11 @@ import {
   Sparkles, 
   ShieldAlert, 
   ShieldCheck,
-  Zap
+  Zap,
+  Copy,
+  Check,
+  HelpCircle,
+  Brain
 } from 'lucide-react';
 
 interface CandidateDrawerProps {
@@ -33,6 +37,7 @@ export default function CandidateDrawer({
   const [status, setStatus] = React.useState(candidate?.status || 'Applied');
   const [notes, setNotes] = React.useState(candidate?.notes || '');
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isCopied, setIsCopied] = React.useState(false);
 
   // Sync state when candidate changes
   useEffect(() => {
@@ -174,6 +179,59 @@ export default function CandidateDrawer({
     { label: 'Language Fit', value: candidate.score_breakdown?.language ?? 0 }
   ];
 
+  const interviewQuestions = React.useMemo(() => {
+    if (!candidate) return [];
+    const questions: { category: string; question: string }[] = [];
+
+    if (candidate.matched_skills && candidate.matched_skills.length > 0) {
+      const s1 = candidate.matched_skills[0];
+      questions.push({
+        category: "Matched Technical Core",
+        question: `Can you walk us through a recent production architecture where you used ${s1} to solve a complex performance bottleneck?`
+      });
+      if (candidate.matched_skills.length > 1) {
+        const s2 = candidate.matched_skills[1];
+        questions.push({
+          category: "Integration Patterns",
+          question: `How do you handle integration and state synchronization between ${s1} and ${s2} under high load?`
+        });
+      }
+    }
+
+    if (candidate.missing_skills && candidate.missing_skills.length > 0) {
+      const m1 = candidate.missing_skills[0];
+      questions.push({
+        category: "Skill Gap Ramp-up",
+        question: `Our core stack relies heavily on ${m1}. What related tools do you have experience with that will enable you to ramp up on ${m1} quickly?`
+      });
+    }
+
+    const yoe = candidate.extracted_info?.experience_years ?? 0;
+    if (yoe >= 5) {
+      questions.push({
+        category: "Senior Technical Leadership",
+        question: `With ${yoe} years of experience, how do you handle technical mentoring, code reviews, and resolving architectural trade-offs in sprint planning?`
+      });
+    } else {
+      questions.push({
+        category: "Debugging & Delivery",
+        question: `Describe a challenging production bug you encountered recently. How did you diagnose, isolate, and patch it?`
+      });
+    }
+
+    return questions;
+  }, [candidate]);
+
+  const handleCopyInterviewKit = () => {
+    if (!candidate) return;
+    const textToCopy = `HireGrid.io Interview Kit for ${candidate.candidate_name}\n\n` + 
+      interviewQuestions.map((q, i) => `${i + 1}. [${q.category}]\n   ${q.question}`).join('\n\n');
+    
+    navigator.clipboard.writeText(textToCopy);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
   return (
     <>
       {/* Backdrop overlay */}
@@ -229,6 +287,45 @@ export default function CandidateDrawer({
             <p className="text-sm text-slate-300 leading-relaxed font-medium">
               {candidate.summary}
             </p>
+          </div>
+
+          {/* AI Tailored Interview Kit */}
+          <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-4 text-left">
+            <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-widest">AI Tailored Interview Kit</h4>
+              </div>
+              <button
+                onClick={handleCopyInterviewKit}
+                className="px-3 py-1.5 rounded-md border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                {isCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Interview Kit</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-1">
+              {interviewQuestions.map((iq, idx) => (
+                <div key={idx} className="p-3.5 rounded-lg border border-slate-850 bg-[#060913]/60 space-y-1">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                    {idx + 1}. {iq.category}
+                  </span>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    "{iq.question}"
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Recruiter Actions Section */}
