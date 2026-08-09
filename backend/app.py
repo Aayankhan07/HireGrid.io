@@ -8,7 +8,7 @@ if os.path.exists(parent_env):
 else:
     load_dotenv()
 
-from fastapi import FastAPI, File, UploadFile, Form, Header
+from fastapi import FastAPI, File, UploadFile, Form, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse
 from fastapi.concurrency import run_in_threadpool
@@ -732,7 +732,7 @@ async def analyze_resumes_stream(
 
 
 @app.get("/api/screenings/{screening_id}/report")
-async def get_screening_report(screening_id: str, user: dict = Depends(get_current_user)):
+async def get_screening_report(screening_id: str, user: dict = Depends(check_authorization)):
     sc = db_get_screening_details(screening_id, user["email"])
     if not sc:
         raise HTTPException(status_code=404, detail="Screening not found")
