@@ -367,7 +367,15 @@ def extract_phone(text: str) -> str:
     match = re.search(pattern, text)
     return match.group(0) if match else ""
 
-def extract_all(text: str, skill_lexicon: set, filename: str = "") -> dict:
+DEFAULT_SKILL_LEXICON = {
+    "Python", "FastAPI", "React", "Next.js", "Docker", "Kubernetes", "PostgreSQL",
+    "MongoDB", "Redis", "TypeScript", "JavaScript", "HTML", "CSS", "Node.js", "Express",
+    "Django", "Flask", "AWS", "Azure", "GCP", "Git", "GraphQL", "REST", "SQL", "Linux"
+}
+
+def extract_all(text: str, skill_lexicon: set = None, filename: str = "") -> dict:
+    if skill_lexicon is None:
+        skill_lexicon = DEFAULT_SKILL_LEXICON
     skills = extract_skills(text, skill_lexicon)
     experience = calculate_total_experience(text)
     education = extract_education(text)
@@ -401,4 +409,5 @@ def extract_all(text: str, skill_lexicon: set, filename: str = "") -> dict:
         "candidate_name": candidate_name,
         "raw_text": text
     }
+
 
