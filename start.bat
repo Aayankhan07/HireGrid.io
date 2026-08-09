@@ -39,6 +39,6 @@ echo  Backend:  http://localhost:8000
 echo  Frontend: http://localhost:3000
 echo  API Docs: http://localhost:8000/docs
 echo ==============================================
-timeout /t 5
+ping 127.0.0.1 -n 5 >nul
 
 
