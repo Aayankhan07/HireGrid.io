@@ -1,61 +1,79 @@
-# Python
-__pycache__/
+# ────────── Python Caches & Virtual Environments ──────────
+**/__pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
 venv/
 env/
-.env
 .venv/
-.pytest_cache/
+ENV/
+**/venv/
+**/scratch/
+**/.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
 
-# Node
-node_modules/
+# ────────── Node.js / Next.js / Frontend ──────────
+**/node_modules/
+**/.next/
+**/out/
 dist/
 build/
 .npm/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.turbo/
+.vercel/
+*.tsbuildinfo
 
-# OS Files
-.DS_Store
-Thumbs.db
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Project specific
-backend/venv/
-backend/__pycache__/
-backend/scratch/
-frontend/.next/
-frontend/node_modules/
-
-# Local databases & session stores
+# ────────── Databases & Storage ──────────
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
-backend/*.db
-backend/*.db-journal
+**/*.db
+**/*.db-journal
+**/*.sqlite*
 
-# Local Environment Variables
-.env
-.env.local
-.env.*.local
-.env.development
-.env.test
-.env.production
-!.env.example
-
-# Accuracy Reports and Benchmarks
-accuracy_checker/accuracy_report.json
-
-# Candidate Uploads
+# ────────── Candidate Resume Uploads ──────────
 backend/uploads/*
 !backend/uploads/.gitkeep
 
-# Logs and debug output
+# ────────── Environment Files ──────────
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+!backend/.env.example
+
+# ────────── OS Metadata & Temporary Files ──────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+
+# ────────── IDEs & Code Editors ──────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ────────── Logs & Benchmarks ──────────
 *.log
-backend/*.log
+**/*.log
+logs/
+accuracy_checker/accuracy_report.json
+
+
