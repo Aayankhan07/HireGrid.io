@@ -36,8 +36,8 @@ HireGrid.io is structured as a decoupled full-stack architecture featuring a **N
 │   │                      CORE ENGINE & NLP PIPELINE                          │  │
 │   │                                                                          │  │
 │   │  ┌───────────────┐  ┌─────────────────┐  ┌────────────────────────────┐  │  │
-│   │  │ PDF Parser    │  │ spaCy NLP Layer │  │ Sentence-Transformers      │  │  │
-│   │  │ (pdfplumber)  │  │ (Entity & Skill)│  │ (all-MiniLM-L6-v2)         │  │  │
+│   │  │ PDF Parser    │  │ Rule-Based      │  │ Sentence-Transformers      │  │  │
+│   │  │ (pdfplumber)  │  │ Extraction      │  │ (configurable model)       │  │  │
 │   │  └───────┬───────┘  └────────┬────────┘  └─────────────┬──────────────┘  │  │
 │   │          │                   │                         │                 │  │
 │   │          └───────────────────┴────────────┬────────────┘                 │  │
@@ -78,59 +78,149 @@ The frontend application is built with modern web technologies focused on render
 The backend microservice is designed for throughput and async CPU task execution:
 
 - **Framework**: FastAPI (ASGI server powered by Uvicorn).
-- **Concurrency Model**: CPU-intensive operations (PDF rendering, spaCy NLP tokenization, transformer vector encoding) are dispatched off the ASGI event loop using `fastapi.concurrency.run_in_threadpool` or `asyncio.to_thread` to maintain zero-blocking REST and SSE responses.
+- **Concurrency Model**: CPU-intensive operations (PDF text extraction, regex parsing, transformer vector encoding) are dispatched off the ASGI event loop with `fastapi.concurrency.run_in_threadpool`, so REST and SSE responses never block.
 - **Modules**:
-  - `core/parser.py`: PDF text extraction wrapping `pdfplumber` with fallback string cleanups.
-  - `core/nlp_layer.py`: Natural Language Processing pipeline leveraging spaCy (`en_core_web_sm`) and comprehensive skill/certification phrase matching.
-  - `core/similarity.py`: Vector embeddings generator using PyTorch & HuggingFace `sentence-transformers/all-MiniLM-L6-v2`.
-  - `core/rules_engine.py`: Multi-criteria composite decision system calculating weighted fit scores, experience non-linear calibrations, and Soft Veto thresholds.
-  - `core/auth.py`: Cryptographic authentication module generating PBKDF2 HMAC SHA256 hashes and standard Base64 session tokens.
-  - `core/db.py`: Universal SQL abstraction layer providing single-query compatibility across both SQLite and PostgreSQL backends.
+  - `core/parser.py`: PDF text extraction via `pdfplumber`, with whitespace normalisation.
+  - `core/nlp_layer.py`: Rule-based attribute extraction — skills, experience, education, location, certifications, contact details. Regex and phrase matching throughout; no NER model on the request path.
+  - `core/skill_aliases.py`: Skill vocabulary normalisation (`k8s` → `kubernetes`). Consulted by extraction, scoring, and similarity so all three agree on what counts as the same skill.
+  - `core/skill_weights.py`: Parses must-have (`!`) and nice-to-have (`?`) markers off required skills, and reports which non-negotiables a candidate is missing.
+  - `core/similarity.py`: Sentence-transformer embeddings with a model registry (per-model calibration bands and query prefixes), section-chunk scoring, and batch encoding.
+  - `core/rules_engine.py`: Weighted composite scoring, soft-veto guardrail, seniority and experience penalties, per-component audit log.
+  - `core/auth.py`: PBKDF2-HMAC-SHA256 password hashing and HMAC-signed session tokens.
+  - `core/db.py`: SQL abstraction over SQLite and PostgreSQL — connection pooling, scoped transactions, and ownership-enforcing queries.
+
+### Shared scoring path
+
+Both `/api/analyze` and `/api/analyze/stream` delegate to a single
+`_score_one_candidate()` helper. The two endpoints previously carried duplicate
+copies of the pipeline, which let their behaviour drift apart; consolidating
+means a scoring change cannot apply to one endpoint and not the other.
+
+### Data access
+
+- **Connection pooling**: PostgreSQL uses a `ThreadedConnectionPool`
+  (`DB_POOL_MAX`, default 10). Opening a connection per query exhausts the
+  server's connection limit under load.
+- **Scoped transactions**: the `db_session()` context manager commits once on
+  success, rolls back on any exception, and always returns the connection.
+- **Atomic deletes**: a screening and its candidates are removed in one
+  transaction, children first. SQLite additionally enables
+  `PRAGMA foreign_keys = ON`, without which its declared cascades never fire.
+- **List serialisation**: skill lists are stored as JSON rather than
+  comma-joined strings, which corrupted any skill containing a comma. The reader
+  still accepts the legacy comma format for existing rows.
 
 ---
 
 ## 🔑 Authentication & Authorization Flow
 
-HireGrid.io implements secure multi-tenant user access:
+### Authentication (who you are)
 
-1. **Email / Password Authentication**:
-   - Passwords are never stored in plain text.
-   - Salt generation: 16 random bytes via `os.urandom(16)`.
-   - Key derivation: `hashlib.pbkdf2_hmac('sha256', password, salt, 100_000)`.
-2. **Google OAuth 2.0 Validation**:
-   - Google ID Tokens are verified directly against Google's `https://oauth2.googleapis.com/tokeninfo` endpoint.
-   - Accounts are automatically auto-provisioned upon first verified Google login.
-3. **Session Tokens & Headers**:
-   - Successful auth yields a token containing encoded JSON claims (`email`, `role`, `timestamp`, `signature`).
-   - Protected API requests include header: `Authorization: Bearer <TOKEN>`.
+1. **Email / password**
+   - Salt: 32 random bytes via `os.urandom(32)`.
+   - Derivation: `hashlib.pbkdf2_hmac('sha256', password, salt, 100_000)`.
+   - Verification uses `hmac.compare_digest` to avoid timing leaks.
+2. **Google OAuth 2.0**
+   - ID tokens verified server-side against
+     `https://oauth2.googleapis.com/tokeninfo`; `email_verified` must be true.
+   - Unknown emails are auto-provisioned with an unusable random password.
+3. **Session tokens**
+   - Format: `base64url(payload).base64url(HMAC-SHA256(payload))` carrying
+     `email`, `role`, and `exp` (24 hours).
+   - Signature is checked before the payload is decoded.
+   - The signing key has **no default** — see the security section below.
+
+### Authorization (what you may touch)
+
+Authentication alone is not sufficient: every resource is additionally scoped to
+its owner.
+
+- Screening reads and deletes filter on `user_email`.
+- Candidate operations resolve ownership by joining
+  `candidates → screenings → user_email`. `db_get_candidate_owned()` is the only
+  sanctioned candidate lookup; status and notes updates enforce ownership inside
+  the `UPDATE` statement itself, so a non-matching row simply updates nothing.
+- A resource owned by someone else returns **`404`**, not `403` — the API does
+  not confirm that an id exists.
+
+> This is enforced by regression tests in `backend/tests/test_authorization.py`.
+> An earlier revision authenticated the caller but never checked ownership, so
+> any logged-in user could read or mutate any candidate by id.
+
+### Session model limitations
+
+Tokens are stateless and self-contained. There is no server-side revocation and
+no refresh flow — logout is client-side only, and a leaked token stays valid
+until it expires. Rotating `JWT_SECRET` invalidates all sessions at once.
 
 ---
 
 ## 📡 Real-Time SSE Streaming Architecture
 
-To eliminate UI lag during batch resume parsing (which can take 1-3 seconds per document), HireGrid.io uses **Server-Sent Events (SSE)** via HTTP POST/GET endpoints (`/api/screenings/stream`):
+Batch parsing takes roughly 1–3 seconds per document, so `POST /api/analyze/stream`
+returns a `text/event-stream` and reports progress as it works.
 
 ```
-Client (Next.js)                         Backend (FastAPI)
-  │                                           │
-  ├─────── POST /api/screenings/stream ──────►│ (Form Data + Files)
-  │        Content-Type: multipart/form-data │
-  │                                           │ 1. Create screening record
-  │◄────── 200 OK (text/event-stream) ────────┤
-  │                                           │ 2. Loop over PDF documents:
-  │◄────── event: progress (Parsing CV 1) ────┤    - Extract PDF text
-  │◄────── event: candidate_done ─────────────┤    - Run spaCy entity extraction
-  │                                           │    - Compute vector embeddings
-  │◄────── event: progress (Parsing CV 2) ────┤    - Run composite scoring
-  │◄────── event: candidate_done ─────────────┤    - Save candidate in DB
-  │                                           │
-  │◄────── event: complete ───────────────────┤ 3. Finish stream connection
+Client (Next.js)                        Backend (FastAPI)
+  │                                          │
+  ├─────── POST /api/analyze/stream ────────►│ multipart/form-data
+  │                                          │ 0. Spool every upload to disk
+  │◄────── 200 OK (text/event-stream) ───────┤    (chunked, size-capped)
+  │                                          │
+  │◄────── {"type":"status"} ────────────────┤ 1. Announce batch size
+  │                                          │
+  │◄────── {"type":"progress", step, total} ─┤ 2. Per candidate:
+  │◄────── {"type":"progress"} ──────────────┤    - extract PDF text
+  │                                          │    - rule-based extraction
+  │                                          │    - embeddings + scoring
+  │                                          │    - keep or auto-reject
+  │                                          │
+  │                                          │ 3. Rank, apply top_n cutoff,
+  │                                          │    persist screening +
+  │                                          │    candidates in one pass
+  │◄────── {"type":"result", data} ──────────┤ 4. Emit the stored screening
 ```
+
+Uploads are **spooled to disk before the generator runs**, for two reasons: the
+request body is only readable inside the handler, and buffering an entire batch
+in memory (100 CVs × 5MB) would exhaust RAM before any work began.
+
+All three message types arrive on the same `data:` channel and are distinguished
+by their `type` field — see the [API Reference](api-reference.md).
 
 ---
 
 ## 🔐 Security & Data Protection
 
-- **CORS Middleware**: Explicit origin validation matching configured `ALLOWED_ORIGINS` environment variables.
-- **Role Validation**: Restricts profile privilege assignment to valid recruiter roles (`Recruitment Lead`, `Technical Recruiter`, `HR Manager`).
-- **File System Isolation**: Uploaded resumes stored in isolated UUID-backed server directories (`/backend/uploads/{screening_id}/`).
+- **Secret management**: `JWT_SECRET` has no shipped default. With
+  `ENV=production` a missing value raises at startup; elsewhere a random
+  per-process key is generated and warned about. The admin seed refuses the
+  example password in production.
+- **Object-level authorization**: enforced per resource, not just per session —
+  see the authorization section above.
+- **CORS**: origins restricted to `ALLOWED_ORIGINS`. A wildcard is rejected,
+  since Starlette cannot combine `*` with credentialed requests.
+- **Role validation**: signup roles are checked against an allow-list; anything
+  unrecognised is coerced to `Recruitment Lead`.
+- **Login throttling**: fixed-window counter per IP + email, returning `429` with
+  `Retry-After`. In-process only — front it with a gateway limiter when running
+  multiple workers.
+- **Upload handling**: files are streamed to disk in 1MB chunks and capped at
+  `MAX_RESUME_BYTES`. Stored names are server-generated UUIDs
+  (`uploads/cand-<uuid>.pdf`); the original filename is never used as a path.
+- **Path confinement**: CV downloads resolve the stored path with `realpath` and
+  confirm it sits inside the uploads directory, so a tampered database row cannot
+  be used to read arbitrary files.
+- **Status validation**: pipeline statuses are checked against an allow-list
+  before reaching the database.
+
+### Handling candidate data
+
+Resume PDFs are personal data. Two operational consequences:
+
+- `backend/uploads/` is gitignored — never commit real CVs. If any were
+  committed historically, purging the working tree does not remove them from git
+  history; that requires a history rewrite.
+- Deleting a screening removes its candidate rows **and** their PDFs from disk.
+  Candidates dropped by the `top_n_candidates` cutoff have their files deleted
+  rather than left orphaned.
