@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useId, useRef } from 'react';
 import { X, Award, CheckCircle2, AlertCircle, Sparkles, MapPin, BookOpen, Briefcase, Globe } from 'lucide-react';
 import { Candidate } from '@/types';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { getScoreBadgeClass, getScoreBarClass } from '@/lib/score';
 
 interface CandidateComparisonModalProps {
   candidates: Candidate[];
@@ -15,34 +17,28 @@ export default function CandidateComparisonModal({
   isOpen,
   onClose
 }: CandidateComparisonModalProps) {
-  // Close on Escape key press
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  // Escape, focus containment, focus restore and scroll lock.
+  useFocusTrap(panelRef, isOpen, onClose);
 
   if (!isOpen || candidates.length === 0) return null;
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10';
-    if (score >= 60) return 'text-blue-400 border-blue-500/20 bg-blue-500/10';
-    return 'text-slate-400 border-slate-500/20 bg-slate-500/10';
-  };
-
-  const getProgressBarColor = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-blue-500';
-    return 'bg-slate-500';
-  };
+  // Shared with the ranking table and pipeline board so a candidate never
+  // renders one colour here and another elsewhere.
+  const getScoreColor = getScoreBadgeClass;
+  const getProgressBarColor = getScoreBarClass;
 
   return (
     <div className="fixed inset-0 bg-[#060913]/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="w-full max-w-5xl rounded-2xl border border-slate-800 bg-[#0d1326] shadow-2xl overflow-hidden my-8 animate-slide-up flex flex-col max-h-[90vh]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="w-full max-w-5xl rounded-2xl border border-slate-800 bg-[#0d1326] shadow-2xl overflow-hidden my-8 animate-slide-up flex flex-col max-h-[90vh]"
+      >
         
         {/* Modal Header */}
         <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-[#0d1326] shrink-0">
@@ -51,15 +47,17 @@ export default function CandidateComparisonModal({
               <Award className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Side-by-Side Candidate Comparison</h2>
-              <p className="text-xs text-slate-450 mt-0.5">Comparing {candidates.length} selected profiles across all criteria.</p>
+              <h2 id={titleId} className="text-xl font-bold text-white">Side-by-Side Candidate Comparison</h2>
+              <p className="text-xs text-content-muted mt-0.5">Comparing {candidates.length} selected profiles across all criteria.</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close comparison"
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -151,7 +149,7 @@ export default function CandidateComparisonModal({
                           </span>
                         ))}
                         {cand.matched_skills.length === 0 && (
-                          <span className="text-slate-500 italic">No skills matched</span>
+                          <span className="text-content-muted italic">No skills matched</span>
                         )}
                       </div>
                     </td>

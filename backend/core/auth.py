@@ -35,7 +35,35 @@ import base64
 import json
 import time
 
-SECRET_KEY = os.environ.get("JWT_SECRET", "super-secret-key-hiregrid-12345")
+def _load_secret_key() -> str:
+    """
+    Resolve the token signing key.
+
+    A shipped default would let anyone forge a session token, so there is no
+    fallback in production. Outside production a random per-process key is
+    generated instead: tokens stop working across restarts, which is annoying
+    enough to notice but never silently insecure.
+    """
+    secret = os.environ.get("JWT_SECRET", "").strip()
+    if secret:
+        return secret
+
+    if os.environ.get("ENV", "development").strip().lower() == "production":
+        raise RuntimeError(
+            "JWT_SECRET must be set when ENV=production. "
+            "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+        )
+
+    import logging
+    import secrets as _secrets
+    logging.warning(
+        "JWT_SECRET is not set. Using a random ephemeral key; sessions will not "
+        "survive a restart. Set JWT_SECRET in your .env file."
+    )
+    return _secrets.token_urlsafe(48)
+
+
+SECRET_KEY = _load_secret_key()
 
 def generate_session_token(email: str, role: str) -> str:
     """

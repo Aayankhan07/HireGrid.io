@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:classes": "node scripts/check-classes.mjs",
+    "lint:contrast": "node scripts/check-contrast.mjs",
+    "lint:a11y": "node scripts/check-a11y.mjs",
+    "verify": "npm run lint:classes && npm run lint:contrast && npm run lint:a11y && tsc --noEmit"
   },
   "dependencies": {
     "lucide-react": "^1.16.0",
@@ -21,6 +25,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

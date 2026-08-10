@@ -15,6 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Candidate } from '@/types';
+import { getScoreBadgeClass } from '@/lib/score';
 
 interface PipelineBoardProps {
   candidates: Candidate[];
@@ -70,11 +71,6 @@ export default function PipelineBoard({
     }
   };
 
-  const getScoreBadgeClass = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-    if (score >= 60) return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-    return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
-  };
 
   const renderCandidateCard = (cand: Candidate) => {
     const email = cand.extracted_info?.email || "";
@@ -96,7 +92,7 @@ export default function PipelineBoard({
             <h5 className="text-sm font-semibold text-white leading-tight truncate pr-2">
               {cand.candidate_name}
             </h5>
-            <span className="text-[10px] text-slate-500 leading-normal block truncate mt-1">
+            <span className="text-[10px] text-content-muted leading-normal block truncate mt-1">
               {cand.candidate_filename || "resume.pdf"}
             </span>
           </div>
@@ -108,15 +104,15 @@ export default function PipelineBoard({
         {/* Basic Stats */}
         <div className="grid grid-cols-2 gap-2 mt-3 text-[11px] text-slate-400 text-left border-t border-slate-800 pt-3">
           <div className="flex items-center gap-1.5 min-w-0">
-            <Briefcase className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <Briefcase className="w-3.5 h-3.5 text-content-faint shrink-0" />
             <span className="truncate">{cand.extracted_info?.experience_years ?? 0} YOE</span>
           </div>
           <div className="flex items-center gap-1.5 min-w-0">
-            <GraduationCap className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <GraduationCap className="w-3.5 h-3.5 text-content-faint shrink-0" />
             <span className="truncate">{cand.extracted_info?.education || "Unknown"}</span>
           </div>
           <div className="col-span-2 flex items-center gap-1.5 min-w-0">
-            <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-content-faint shrink-0" />
             <span className="truncate">{cand.extracted_info?.location || "Remote / On-site"}</span>
           </div>
         </div>
@@ -126,10 +122,10 @@ export default function PipelineBoard({
           <div className="space-y-1.5 mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-400 text-left">
             {email && (
               <div className="flex items-center gap-2 min-w-0">
-                <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <Mail className="w-3.5 h-3.5 text-content-faint shrink-0" />
                 <a 
                   href={`mailto:${email}`} 
-                  className="hover:text-blue-450 transition-colors truncate text-slate-350 font-medium"
+                  className="hover:text-blue-400 transition-colors truncate text-content-secondary font-medium"
                 >
                   {email}
                 </a>
@@ -137,10 +133,10 @@ export default function PipelineBoard({
             )}
             {phone && (
               <div className="flex items-center gap-2 min-w-0">
-                <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <Phone className="w-3.5 h-3.5 text-content-faint shrink-0" />
                 <a 
                   href={`tel:${phone}`} 
-                  className="hover:text-blue-450 transition-colors text-slate-350 font-medium"
+                  className="hover:text-blue-400 transition-colors text-content-secondary font-medium"
                 >
                   {phone}
                 </a>
@@ -167,7 +163,7 @@ export default function PipelineBoard({
               <button
                 onClick={() => handleUpdateStatus(cand, 'Shortlisted')}
                 title="Select / Shortlist Candidate"
-                className="w-8 h-8 rounded-md border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-450 flex items-center justify-center cursor-pointer transition-all"
+                className="w-8 h-8 rounded-md border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center cursor-pointer transition-all"
               >
                 <Check className="w-4 h-4" />
               </button>
@@ -178,7 +174,7 @@ export default function PipelineBoard({
               <button
                 onClick={() => handleUpdateStatus(cand, 'Rejected')}
                 title="Reject Candidate"
-                className="w-8 h-8 rounded-md border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 text-red-450 flex items-center justify-center cursor-pointer transition-all"
+                className="w-8 h-8 rounded-md border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center cursor-pointer transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -206,7 +202,7 @@ export default function PipelineBoard({
       <div className="lg:col-span-4 p-5 rounded-xl border border-slate-800 bg-[#0d1326] flex flex-col min-h-[500px]">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 text-left">
           <div className="flex items-center gap-2">
-            <Clock className="w-4.5 h-4.5 text-blue-450 shrink-0" />
+            <Clock className="w-4.5 h-4.5 text-blue-400 shrink-0" />
             <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Applied / Pending</h4>
           </div>
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-300 font-mono">
@@ -217,7 +213,7 @@ export default function PipelineBoard({
         <div className="flex-1 overflow-y-auto space-y-4 max-h-[600px] pr-1">
           {pendingCandidates.map(renderCandidateCard)}
           {pendingCandidates.length === 0 && (
-            <div className="h-full flex items-center justify-center py-20 text-center text-xs text-slate-500 italic">
+            <div className="h-full flex items-center justify-center py-20 text-center text-xs text-content-muted italic">
               No pending candidates.
             </div>
           )}
@@ -228,7 +224,7 @@ export default function PipelineBoard({
       <div className="lg:col-span-4 p-5 rounded-xl border border-slate-800 bg-[#0d1326] flex flex-col min-h-[500px]">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 text-left">
           <div className="flex items-center gap-2">
-            <UserCheck className="w-4.5 h-4.5 text-emerald-450 shrink-0" />
+            <UserCheck className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
             <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Selected / Shortlist</h4>
           </div>
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-300 font-mono">
@@ -239,7 +235,7 @@ export default function PipelineBoard({
         <div className="flex-1 overflow-y-auto space-y-4 max-h-[600px] pr-1">
           {selectedCandidates.map(renderCandidateCard)}
           {selectedCandidates.length === 0 && (
-            <div className="h-full flex items-center justify-center py-20 text-center text-xs text-slate-500 italic">
+            <div className="h-full flex items-center justify-center py-20 text-center text-xs text-content-muted italic">
               No selected candidates.
             </div>
           )}
@@ -250,7 +246,7 @@ export default function PipelineBoard({
       <div className="lg:col-span-4 p-5 rounded-xl border border-slate-800 bg-[#0d1326] flex flex-col min-h-[500px]">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 text-left">
           <div className="flex items-center gap-2">
-            <XCircle className="w-4.5 h-4.5 text-red-450 shrink-0" />
+            <XCircle className="w-4.5 h-4.5 text-red-400 shrink-0" />
             <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Rejected</h4>
           </div>
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-300 font-mono">
@@ -261,7 +257,7 @@ export default function PipelineBoard({
         <div className="flex-1 overflow-y-auto space-y-4 max-h-[600px] pr-1">
           {rejectedCandidates.map(renderCandidateCard)}
           {rejectedCandidates.length === 0 && (
-            <div className="h-full flex items-center justify-center py-20 text-center text-xs text-slate-500 italic">
+            <div className="h-full flex items-center justify-center py-20 text-center text-xs text-content-muted italic">
               No rejected candidates.
             </div>
           )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   LogIn, 
@@ -28,6 +28,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('Recruitment Lead');
+
+  // Sign-in and sign-up are separate panels that reuse the same field names, so
+  // each needs its own id to keep <label htmlFor> unambiguous.
+  const signInEmailId = useId();
+  const signInPasswordId = useId();
+  const signUpNameId = useId();
+  const signUpEmailId = useId();
+  const signUpPasswordId = useId();
+  const signUpRoleId = useId();
   
   // Google Auth States
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
@@ -284,7 +293,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-content-muted">
               <span>Top Active Role: Principal Architect</span>
               <span className="text-slate-400">Score 94.8%</span>
             </div>
@@ -292,13 +301,13 @@ export default function LoginPage() {
 
           {/* Trust bullet points */}
           <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm text-slate-350">
+            <div className="flex items-center gap-3 text-sm text-content-secondary">
               <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800 shrink-0">
                 <BarChart3 className="w-3 h-3 text-slate-400" />
               </div>
               <span>Real-time SSE Streaming parsing technology</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-355">
+            <div className="flex items-center gap-3 text-sm text-content-secondary">
               <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800 shrink-0">
                 <ShieldCheck className="w-3 h-3 text-slate-400" />
               </div>
@@ -314,9 +323,9 @@ export default function LoginPage() {
             {/* Visual Logo Container for Mobile & Visual Hierarchy */}
             <div className="flex flex-col items-center mb-8 text-center lg:hidden">
               <h1 className="text-4xl font-extrabold tracking-wider text-white">
-                Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
+                Hire<span className="text-blue-500">Grid</span><span className="text-content-muted">.io</span>
               </h1>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-3 font-semibold">Enterprise Talent Screener & Analytics</p>
+              <p className="text-[10px] text-content-muted uppercase tracking-widest leading-none mt-3 font-semibold">Enterprise Talent Screener & Analytics</p>
             </div>
 
             {/* Premium Interactive Login Card */}
@@ -325,9 +334,9 @@ export default function LoginPage() {
               {/* Brand Indicator (Desktop Header inside the card) */}
               <div className="hidden lg:flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
                 <h1 className="text-lg font-bold tracking-tight text-white">
-                  Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
+                  Hire<span className="text-blue-500">Grid</span><span className="text-content-muted">.io</span>
                 </h1>
-                <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-semibold">SECURE ACCESS</span>
+                <span className="text-[10px] uppercase font-mono tracking-widest text-content-muted font-semibold">SECURE ACCESS</span>
               </div>
 
               {/* Tab Selector Buttons */}
@@ -388,14 +397,15 @@ export default function LoginPage() {
               {activeTab === 'signin' ? (
                 <form onSubmit={handleSignIn} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Corporate Email Address</label>
+                    <label htmlFor={signInEmailId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Corporate Email Address</label>
                     <div className="relative">
                       <span className={`absolute inset-y-0 left-0 flex items-center pl-3.5 transition-colors duration-200 ${
-                        focusedInput === 'email' ? 'text-blue-400' : 'text-slate-500'
+                        focusedInput === 'email' ? 'text-blue-400' : 'text-content-muted'
                       }`}>
                         <Mail className="w-4 h-4" />
                       </span>
                       <input
+                        id={signInEmailId}
                         type="email"
                         required
                         value={email}
@@ -410,14 +420,15 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Security Key / Password</label>
+                    <label htmlFor={signInPasswordId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Security Key / Password</label>
                     <div className="relative">
                       <span className={`absolute inset-y-0 left-0 flex items-center pl-3.5 transition-colors duration-200 ${
-                        focusedInput === 'password' ? 'text-blue-400' : 'text-slate-500'
+                        focusedInput === 'password' ? 'text-blue-400' : 'text-content-muted'
                       }`}>
                         <Lock className="w-4 h-4" />
                       </span>
                       <input
+                        id={signInPasswordId}
                         type={showPassword ? "text" : "password"}
                         required
                         value={password}
@@ -430,16 +441,18 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-pressed={showPassword}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-content-muted hover:text-slate-300 transition-colors cursor-pointer"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </div>
                   </div>
 
                   {/* Demo Credentials Auto Fill Helper */}
                   <div className="flex items-center justify-between text-xs pt-1">
-                    <span className="text-slate-500 text-[11px]">Testing demo account?</span>
+                    <span className="text-content-muted text-[11px]">Testing demo account?</span>
                     <button
                       type="button"
                       onClick={handleFillDemo}
@@ -480,7 +493,7 @@ export default function LoginPage() {
                         <div className="absolute inset-0 flex items-center">
                           <div className="w-full border-t border-slate-800"></div>
                         </div>
-                        <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
+                        <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-content-muted uppercase tracking-widest">Or authenticate with</span>
                       </div>
 
                       <div className="w-full flex justify-center">
@@ -492,14 +505,15 @@ export default function LoginPage() {
               ) : (
                 <form onSubmit={handleSignUp} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Full Name</label>
+                    <label htmlFor={signUpNameId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Full Name</label>
                     <div className="relative">
                       <span className={`absolute inset-y-0 left-0 flex items-center pl-3.5 transition-colors duration-200 ${
-                        focusedInput === 'name' ? 'text-blue-400' : 'text-slate-500'
+                        focusedInput === 'name' ? 'text-blue-400' : 'text-content-muted'
                       }`}>
                         <User className="w-4 h-4" />
                       </span>
                       <input
+                        id={signUpNameId}
                         type="text"
                         required
                         value={name}
@@ -513,14 +527,15 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Corporate Email Address</label>
+                    <label htmlFor={signUpEmailId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Corporate Email Address</label>
                     <div className="relative">
                       <span className={`absolute inset-y-0 left-0 flex items-center pl-3.5 transition-colors duration-200 ${
-                        focusedInput === 'email' ? 'text-blue-400' : 'text-slate-500'
+                        focusedInput === 'email' ? 'text-blue-400' : 'text-content-muted'
                       }`}>
                         <Mail className="w-4 h-4" />
                       </span>
                       <input
+                        id={signUpEmailId}
                         type="email"
                         required
                         value={email}
@@ -534,14 +549,15 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Security Key / Password</label>
+                    <label htmlFor={signUpPasswordId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Security Key / Password</label>
                     <div className="relative">
                       <span className={`absolute inset-y-0 left-0 flex items-center pl-3.5 transition-colors duration-200 ${
-                        focusedInput === 'password' ? 'text-blue-400' : 'text-slate-500'
+                        focusedInput === 'password' ? 'text-blue-400' : 'text-content-muted'
                       }`}>
                         <Lock className="w-4 h-4" />
                       </span>
                       <input
+                        id={signUpPasswordId}
                         type={showPassword ? "text" : "password"}
                         required
                         value={password}
@@ -554,17 +570,20 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-pressed={showPassword}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-content-muted hover:text-slate-300 transition-colors cursor-pointer"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Corporate Position / Role</label>
+                    <label htmlFor={signUpRoleId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Corporate Position / Role</label>
                     <div className="relative">
                       <select
+                        id={signUpRoleId}
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
                         className="glass-input w-full py-3.5 px-4 text-sm cursor-pointer appearance-none bg-[#070b1e] border border-slate-800 hover:border-slate-700 focus:border-blue-500 pr-10"
@@ -612,7 +631,7 @@ export default function LoginPage() {
                         <div className="absolute inset-0 flex items-center">
                           <div className="w-full border-t border-slate-800"></div>
                         </div>
-                        <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-slate-500 uppercase tracking-widest">Or authenticate with</span>
+                        <span className="relative px-3.5 bg-[#0d1326] text-[9px] font-bold text-content-muted uppercase tracking-widest">Or authenticate with</span>
                       </div>
 
                       <div className="w-full flex justify-center">
@@ -625,7 +644,7 @@ export default function LoginPage() {
             </div>
 
             {/* Footer info (Desktop/Visual context alignment) */}
-            <p className="text-center text-xs text-slate-600 mt-8">
+            <p className="text-center text-xs text-content-muted mt-8">
               &copy; {new Date().getFullYear()} HireGrid.io. All rights reserved.
             </p>
           </div>

@@ -576,7 +576,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <span className="text-xl sm:text-2xl xl:text-[26px] font-bold tracking-tight text-white transition-all">
-              Hire<span className="text-blue-500">Grid</span><span className="text-slate-500">.io</span>
+              Hire<span className="text-blue-500">Grid</span><span className="text-content-muted">.io</span>
             </span>
           </Link>
 
@@ -661,15 +661,15 @@ export default function LandingPage() {
             <div className="grid grid-cols-3 gap-6 pt-6 border-t border-slate-800 max-w-md">
               <div>
                 <span className="text-xl font-extrabold text-white block">98%</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Parsing Yield</span>
+                <span className="text-[10px] text-content-muted uppercase tracking-wider font-semibold">Parsing Yield</span>
               </div>
               <div>
                 <span className="text-xl font-extrabold text-white block">&lt;2s</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Analysis Time</span>
+                <span className="text-[10px] text-content-muted uppercase tracking-wider font-semibold">Analysis Time</span>
               </div>
               <div>
                 <span className="text-xl font-extrabold text-white block">OAuth</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Secure Logins</span>
+                <span className="text-[10px] text-content-muted uppercase tracking-wider font-semibold">Secure Logins</span>
               </div>
             </div>
           </div>
@@ -694,7 +694,7 @@ export default function LandingPage() {
                       </div>
                       <div>
                         <span className="text-xs font-semibold text-white block">Alex McKinney</span>
-                        <span className="text-[10px] text-slate-500 block">Lead Software Engineer • Remote</span>
+                        <span className="text-[10px] text-content-muted block">Lead Software Engineer • Remote</span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -725,7 +725,7 @@ export default function LandingPage() {
                       </div>
                       <div>
                         <span className="text-xs font-semibold text-white block">Sarah Lin</span>
-                        <span className="text-[10px] text-slate-500 block">Frontend Developer • SF</span>
+                        <span className="text-[10px] text-content-muted block">Frontend Developer • SF</span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -774,7 +774,7 @@ export default function LandingPage() {
               </div>
               
               {/* Graphic element for NLP evaluation */}
-              <div className="mt-8 bg-slate-950 border border-slate-850 rounded-xl p-4.5 font-mono text-xs text-slate-500 space-y-3 relative overflow-hidden group-hover:border-slate-800 transition-colors">
+              <div className="mt-8 bg-slate-950 border border-slate-850 rounded-xl p-4.5 font-mono text-xs text-content-muted space-y-3 relative overflow-hidden group-hover:border-slate-800 transition-colors">
                 <div className="flex justify-between items-center border-b border-slate-900 pb-2">
                   <span className="text-[10px] text-blue-500 uppercase tracking-wider font-bold">Semantic Distance Analyzer</span>
                   <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px] font-bold">Cosine Similarity: 0.94</span>
@@ -810,7 +810,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-8 rounded-xl bg-[#080c18] border border-slate-850 p-4 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1.5 overflow-hidden max-h-[110px] group-hover:border-slate-800 transition-colors">
-                <div className="text-slate-650 group-hover:text-slate-500 transition-colors">&gt; Starting stream server...</div>
+                <div className="text-content-faint group-hover:text-content-muted transition-colors">&gt; Starting stream server...</div>
                 <div className="text-blue-500 group-hover:text-blue-400 transition-colors">&gt; event: parse_started | total_resumes: 12</div>
                 <div className="text-emerald-500 group-hover:text-emerald-400 transition-colors">&gt; event: parse_success | candidate: Alice</div>
               </div>
@@ -851,10 +851,10 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap gap-2">
-                <span className="badge-agent text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">Subagent-Driven-Development</span>
-                <span className="badge-seo text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">SEO Technical</span>
-                <span className="badge-backend text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">Supabase Postgres</span>
-                <span className="badge-frontend text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-102 transition-transform duration-200">3D Web / Scroll Experience</span>
+                <span className="badge-agent text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-[1.02] transition-transform duration-200">Subagent-Driven-Development</span>
+                <span className="badge-seo text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-[1.02] transition-transform duration-200">SEO Technical</span>
+                <span className="badge-backend text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-[1.02] transition-transform duration-200">Supabase Postgres</span>
+                <span className="badge-frontend text-xs py-1.5 px-3 rounded-lg font-semibold group-hover:scale-[1.02] transition-transform duration-200">3D Web / Scroll Experience</span>
               </div>
             </div>
           </div>
@@ -879,7 +879,7 @@ export default function LandingPage() {
 
                 {/* Job Template Selectors */}
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">1. Select Job Role Template</span>
+                  <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider block">1. Select Job Role Template</span>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                     {SIMULATION_TEMPLATES.map(t => (
                       <button
@@ -900,7 +900,7 @@ export default function LandingPage() {
 
                 {/* Active Template Job Description Box */}
                 <div className="bg-[#080c18] border border-slate-850 p-4 rounded-xl space-y-2 text-left transition-all">
-                  <div className="flex items-center gap-2 text-slate-450">
+                  <div className="flex items-center gap-2 text-content-muted">
                     <FileText className="w-3.5 h-3.5 text-blue-500" />
                     <span className="text-[10px] font-bold uppercase tracking-wider">AI Target Job Profile</span>
                   </div>
@@ -919,7 +919,7 @@ export default function LandingPage() {
                 {/* Dynamic Scoring Weights Control */}
                 <div className="space-y-4 pt-1 bg-[#080c18] border border-slate-850 p-4 rounded-xl">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Adjust Scoring Weights</span>
+                    <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider">2. Adjust Scoring Weights</span>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => {
@@ -1008,7 +1008,7 @@ export default function LandingPage() {
                 
                 {/* Ranking Table Header */}
                 <div>
-                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800 text-slate-500 text-[10px] font-mono">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800 text-content-muted text-[10px] font-mono">
                     <span className="uppercase">ACTIVE PIPELINE RUN: {activeTemplate.roleName}</span>
                     <span>3 PROFILES RANKED</span>
                   </div>
@@ -1027,14 +1027,19 @@ export default function LandingPage() {
                               : 'border-slate-850 bg-[#080c18] hover:bg-slate-900/20'
                           }`}
                         >
-                          {/* Card Header Row clickable */}
-                          <div
+                          {/* Expand/collapse control. A real button so it is
+                              reachable by keyboard and exposes its state. */}
+                          <button
+                            type="button"
+                            disabled={isSimulating || simulationProgress !== 100}
+                            aria-expanded={isExpanded}
+                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} details for ${cand.name}`}
                             onClick={() => {
                               if (!isSimulating && simulationProgress === 100) {
                                 setExpandedCandidateId(isExpanded ? null : cand.id);
                               }
                             }}
-                            className={`flex items-center justify-between p-3.5 ${
+                            className={`w-full text-left flex items-center justify-between p-3.5 ${
                               simulationProgress === 100 && !isSimulating ? 'cursor-pointer' : 'cursor-default'
                             }`}
                           >
@@ -1044,7 +1049,7 @@ export default function LandingPage() {
                               </div>
                               <div className="min-w-0">
                                 <span className="text-xs font-bold text-white block truncate">{cand.name}</span>
-                                <span className="text-[9px] text-slate-500 block leading-normal">{cand.yoe} YOE • {cand.location}</span>
+                                <span className="text-[9px] text-content-muted block leading-normal">{cand.yoe} YOE • {cand.location}</span>
                               </div>
                             </div>
                             
@@ -1057,24 +1062,24 @@ export default function LandingPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <span className="text-[10px] text-slate-500 italic block leading-none font-mono">
+                                    <span className="text-[10px] text-content-muted italic block leading-none font-mono">
                                       {isSimulating ? "Analyzing..." : "Pending"}
                                     </span>
                                   </>
                                 )}
                               </div>
                               {simulationProgress === 100 && !isSimulating && (
-                                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
                               )}
                             </div>
-                          </div>
+                          </button>
 
                           {/* Expanded Skill Gap Details Drawer */}
                           {isExpanded && (
                             <div className="px-4 pb-4.5 pt-1 border-t border-slate-800 space-y-3.5 animate-slide-up">
                               {/* AI summary block */}
                               <div className="bg-[#080c18] border border-slate-850 p-3 rounded-lg text-left">
-                                <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest block mb-1">AI Generated Summary</span>
+                                <span className="text-[8.5px] font-bold text-content-muted uppercase tracking-widest block mb-1">AI Generated Summary</span>
                                 <p className="text-[11px] text-slate-300 leading-normal">{cand.summary}</p>
                               </div>
 
@@ -1099,7 +1104,7 @@ export default function LandingPage() {
                                         </span>
                                       ))
                                     ) : (
-                                      <span className="text-[9px] text-slate-500 italic block">None detected</span>
+                                      <span className="text-[9px] text-content-muted italic block">None detected</span>
                                     )}
                                   </div>
                                 </div>
@@ -1113,7 +1118,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Progress bar and toggle indicators */}
-                <div className="mt-6 pt-4 border-t border-slate-850 flex items-center justify-between text-[9px] font-mono text-slate-500">
+                <div className="mt-6 pt-4 border-t border-slate-850 flex items-center justify-between text-[9px] font-mono text-content-muted">
                   <span className="flex items-center gap-1.5">
                     {isSimulating ? (
                       <>
@@ -1166,7 +1171,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Testimonial 1 */}
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-line-default transition-all duration-300">
               <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-blue-500/5 rounded-full blur-[40px] pointer-events-none" />
               <div>
                 <div className="flex gap-1 mb-4 text-amber-400">
@@ -1186,13 +1191,13 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block">Sarah Jenkins</span>
-                  <span className="text-[10px] text-slate-500 block">Head of Talent Acquisition • Stripe</span>
+                  <span className="text-[10px] text-content-muted block">Head of Talent Acquisition • Stripe</span>
                 </div>
               </div>
             </div>
 
             {/* Testimonial 2 */}
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-line-default transition-all duration-300">
               <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-indigo-500/5 rounded-full blur-[40px] pointer-events-none" />
               <div>
                 <div className="flex gap-1 mb-4 text-amber-400">
@@ -1212,13 +1217,13 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block">Marcus Vance</span>
-                  <span className="text-[10px] text-slate-500 block">Recruiting Lead • Vercel</span>
+                  <span className="text-[10px] text-content-muted block">Recruiting Lead • Vercel</span>
                 </div>
               </div>
             </div>
 
             {/* Testimonial 3 */}
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-[#0d1326] relative overflow-hidden group flex flex-col justify-between hover:border-line-default transition-all duration-300">
               <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-emerald-500/5 rounded-full blur-[40px] pointer-events-none" />
               <div>
                 <div className="flex gap-1 mb-4 text-amber-400">
@@ -1238,7 +1243,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block">Dr. Elena Rostova</span>
-                  <span className="text-[10px] text-slate-500 block">Director of People Operations • OpenAI</span>
+                  <span className="text-[10px] text-content-muted block">Director of People Operations • OpenAI</span>
                 </div>
               </div>
             </div>
@@ -1285,7 +1290,7 @@ export default function LandingPage() {
                     className="w-full py-5 px-6 flex items-center justify-between text-left font-semibold text-white hover:text-blue-400 transition-colors text-sm"
                   >
                     <span>{faq.q}</span>
-                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-400' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-content-faint transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-400' : ''}`} />
                   </button>
                   <div 
                     className={`transition-all duration-300 ease-in-out overflow-hidden ${
@@ -1317,7 +1322,7 @@ export default function LandingPage() {
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-xl text-left flex flex-col justify-between">
               <div>
                 <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider block">Sandbox Plan</span>
-                <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">$0<span className="text-sm font-normal text-slate-500">/mo</span></h3>
+                <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">$0<span className="text-sm font-normal text-content-muted">/mo</span></h3>
                 <p className="text-slate-400 text-xs mt-3 leading-relaxed">Perfect for local developers to test CV entity parsing and Google auth flows.</p>
                 <div className="space-y-3 mt-6 border-t border-slate-800 pt-6 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
@@ -1349,7 +1354,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider block">Pro Recruiter</span>
-                <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">$49<span className="text-sm font-normal text-slate-500">/mo</span></h3>
+                <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">$49<span className="text-sm font-normal text-content-muted">/mo</span></h3>
                 <p className="text-slate-400 text-xs mt-3 leading-relaxed">Designed for active recruiters requiring large-scale document parsing options.</p>
                 <div className="space-y-3 mt-6 border-t border-slate-800 pt-6 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
@@ -1382,7 +1387,7 @@ export default function LandingPage() {
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-xl text-left flex flex-col justify-between">
               <div>
                 <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider block">Enterprise Suite</span>
-                <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">Custom<span className="text-sm font-normal text-slate-500"></span></h3>
+                <h3 className="text-3xl font-extrabold text-white mt-3 font-mono">Custom<span className="text-sm font-normal text-content-muted"></span></h3>
                 <p className="text-slate-400 text-xs mt-3 leading-relaxed">Custom NLP fine-tuning, workspace roles, and multi-tenant isolation schemas.</p>
                 <div className="space-y-3 mt-6 border-t border-slate-800 pt-6 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
@@ -1412,7 +1417,7 @@ export default function LandingPage() {
       </main>
  
       {/* Footer bar */}
-      <footer className="w-full border-t border-slate-800 bg-[#060913] mt-auto py-12 text-slate-500 text-xs z-10 relative">
+      <footer className="w-full border-t border-slate-800 bg-[#060913] mt-auto py-12 text-content-muted text-xs z-10 relative">
         <div className="max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-400">HireGrid.io</span>
@@ -1420,7 +1425,7 @@ export default function LandingPage() {
           </div>
  
           <div className="flex items-center gap-6">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-600">Secure AI Screenings</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-content-muted">Secure AI Screenings</span>
           </div>
         </div>
       </footer>

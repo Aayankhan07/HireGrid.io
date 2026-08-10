@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronRight, Filter, Download, Search, ArrowUpDown, Layers, UserCheck, UserX } from 'lucide-react';
 import { Candidate } from '@/types';
 import CandidateComparisonModal from '@/components/ui/CandidateComparisonModal';
+import { getScoreBadgeClass, getScoreBarClass, getScoreLabel } from '@/lib/score';
 
 interface RankingTableProps {
   candidates: Candidate[];
@@ -21,17 +22,12 @@ export default function RankingTable({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
-  const getStatus = (score: number) => {
-    if (score >= 80) return { label: 'Shortlist', colorClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
-    if (score >= 60) return { label: 'Review', colorClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
-    return { label: 'Pending', colorClass: 'bg-slate-500/10 text-slate-400 border-slate-500/20' };
-  };
+  const getStatus = (score: number) => ({
+    label: getScoreLabel(score),
+    colorClass: getScoreBadgeClass(score),
+  });
 
-  const getProgressBarColor = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-blue-500';
-    return 'bg-slate-500';
-  };
+  const getProgressBarColor = getScoreBarClass;
 
   // Search & Sorting Filter Computation
   const filteredCandidates = useMemo(() => {
@@ -145,7 +141,7 @@ export default function RankingTable({
         
         {/* Search Bar */}
         <div className="relative flex-1 max-w-md">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-content-muted">
             <Search className="w-4 h-4" />
           </span>
           <input
@@ -193,11 +189,11 @@ export default function RankingTable({
 
           {/* Sort Option Selector */}
           <div className="relative flex items-center gap-1.5 bg-[#0d1326] border border-slate-800 rounded-xl px-3 py-2 text-xs">
-            <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-content-faint" />
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as any)}
-              className="bg-transparent text-slate-300 text-xs font-semibold focus:outline-none cursor-pointer"
+              className="bg-transparent text-slate-300 text-xs font-semibold cursor-pointer"
             >
               <option value="score-desc" className="bg-[#0d1326]">Score (High → Low)</option>
               <option value="score-asc" className="bg-[#0d1326]">Score (Low → High)</option>
@@ -229,7 +225,7 @@ export default function RankingTable({
                     type="checkbox"
                     checked={selectedIds.length === filteredCandidates.length && filteredCandidates.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 rounded bg-[#060913] border-slate-700 text-blue-500 cursor-pointer focus:ring-0"
+                    className="w-4 h-4 rounded bg-[#060913] border-slate-700 text-blue-500 cursor-pointer"
                     title="Select All Candidates"
                   />
                 </th>
@@ -244,7 +240,7 @@ export default function RankingTable({
             <tbody className="divide-y divide-slate-800/60">
               {filteredCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-slate-500 italic">
+                  <td colSpan={7} className="py-12 text-center text-xs text-content-muted italic">
                     No candidates match the filter parameters.
                   </td>
                 </tr>
@@ -274,7 +270,7 @@ export default function RankingTable({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => {}}
-                          className="w-4 h-4 rounded bg-[#060913] border-slate-700 text-blue-500 cursor-pointer focus:ring-0"
+                          className="w-4 h-4 rounded bg-[#060913] border-slate-700 text-blue-500 cursor-pointer"
                         />
                       </td>
 
@@ -301,7 +297,7 @@ export default function RankingTable({
                             <p className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors leading-tight truncate">
                               {cand.candidate_name}
                             </p>
-                            <p className="text-[11px] text-slate-450 truncate mt-1">
+                            <p className="text-[11px] text-content-muted truncate mt-1">
                               {cand.extracted_info?.education || 'Degree'} • {cand.extracted_info?.experience_years || 0} YOE
                             </p>
                           </div>
@@ -342,19 +338,19 @@ export default function RankingTable({
                             </span>
                           ))}
                           {cand.matched_skills.length > 3 && (
-                            <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[9px] font-bold text-slate-500">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[9px] font-bold text-content-muted">
                               +{cand.matched_skills.length - 3} more
                             </span>
                           )}
                           {cand.matched_skills.length === 0 && (
-                            <span className="text-[10px] text-slate-600 italic">No skills match</span>
+                            <span className="text-[10px] text-content-muted italic">No skills match</span>
                           )}
                         </div>
                       </td>
 
                       {/* Chevron trigger link */}
                       <td className="py-4.5 pr-6 pl-4 text-right">
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center text-slate-500 group-hover:text-white group-hover:bg-slate-800 transition-all">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center text-content-faint group-hover:text-white group-hover:bg-slate-800 transition-all">
                           <ChevronRight className="w-4 h-4" />
                         </div>
                       </td>

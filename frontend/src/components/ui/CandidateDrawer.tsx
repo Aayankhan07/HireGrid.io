@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { Candidate } from '@/types';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { getScoreBadgeClass, getScoreBarClass } from '@/lib/score';
 import { 
   X, 
   Award, 
@@ -38,6 +40,11 @@ export default function CandidateDrawer({
   const [notes, setNotes] = React.useState(candidate?.notes || '');
   const [isSaving, setIsSaving] = React.useState(false);
   const [isCopied, setIsCopied] = React.useState(false);
+
+  const panelRef = useRef<HTMLElement>(null);
+  const titleId = useId();
+  const statusId = useId();
+  const notesId = useId();
 
   // Sync state when candidate changes
   useEffect(() => {
@@ -136,49 +143,15 @@ export default function CandidateDrawer({
     }
   };
   
-  // Close on Escape key press
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  // Escape-to-close, focus containment, focus restore and scroll lock all come
+  // from the shared hook rather than a bespoke keydown listener.
+  useFocusTrap(panelRef, isOpen, onClose);
 
-  if (!candidate) return null;
-
-  const initials = candidate.candidate_name
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || 'CV';
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10';
-    if (score >= 60) return 'text-blue-400 border-blue-500/20 bg-blue-500/10';
-    return 'text-slate-400 border-slate-500/20 bg-slate-500/10';
-  };
-
-  const getProgressBarColor = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-blue-500';
-    return 'bg-slate-500';
-  };
-
-  // Safe mapping of score breakdown with defaults
-  const breakdownItems = [
-    { label: 'Semantic Alignment', value: candidate.score_breakdown?.semantic_similarity ?? 0 },
-    { label: 'Core Skill Match', value: candidate.score_breakdown?.skills ?? 0 },
-    { label: 'Experience Level', value: candidate.score_breakdown?.experience ?? 0 },
-    { label: 'Education Level', value: candidate.score_breakdown?.education ?? 0 },
-    { label: 'Certifications', value: candidate.score_breakdown?.certifications ?? 0 },
-    { label: 'Preferred Location', value: candidate.score_breakdown?.location ?? 0 },
-    { label: 'Language Fit', value: candidate.score_breakdown?.language ?? 0 }
-  ];
-
+  // NOTE: every hook must run before the `if (!candidate)` early return below.
+  // React identifies hooks by call order, so a hook placed after a conditional
+  // return is skipped whenever that branch is taken — the hook count then
+  // changes between renders and React throws "Rendered more hooks than during
+  // the previous render". Add new hooks above the return, not below it.
   const interviewQuestions = React.useMemo(() => {
     if (!candidate) return [];
     const questions: { category: string; question: string }[] = [];
@@ -222,6 +195,32 @@ export default function CandidateDrawer({
     return questions;
   }, [candidate]);
 
+  // ── All hooks are above this line ───────────────────────────────────────────
+  if (!candidate) return null;
+
+  const initials = candidate.candidate_name
+    .split(' ')
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'CV';
+
+  // Shared with the ranking table and pipeline board so a candidate never
+  // renders one colour here and another elsewhere.
+  const getScoreColor = getScoreBadgeClass;
+  const getProgressBarColor = getScoreBarClass;
+
+  // Safe mapping of score breakdown with defaults
+  const breakdownItems = [
+    { label: 'Semantic Alignment', value: candidate.score_breakdown?.semantic_similarity ?? 0 },
+    { label: 'Core Skill Match', value: candidate.score_breakdown?.skills ?? 0 },
+    { label: 'Experience Level', value: candidate.score_breakdown?.experience ?? 0 },
+    { label: 'Education Level', value: candidate.score_breakdown?.education ?? 0 },
+    { label: 'Certifications', value: candidate.score_breakdown?.certifications ?? 0 },
+    { label: 'Preferred Location', value: candidate.score_breakdown?.location ?? 0 },
+    { label: 'Language Fit', value: candidate.score_breakdown?.language ?? 0 }
+  ];
+
   const handleCopyInterviewKit = () => {
     if (!candidate) return;
     const textToCopy = `HireGrid.io Interview Kit for ${candidate.candidate_name}\n\n` + 
@@ -234,16 +233,27 @@ export default function CandidateDrawer({
 
   return (
     <>
-      {/* Backdrop overlay */}
-      <div 
+      {/* Backdrop overlay. aria-hidden because Escape and the close button
+          already expose this affordance; announcing a bare div adds noise. */}
+      <div
+        aria-hidden="true"
         className={`fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
       />
 
-      {/* Slide-out Drawer Panel */}
-      <aside 
+      {/* Slide-out Drawer Panel.
+          The drawer stays mounted and animates via translate-x, so when closed
+          its contents would otherwise remain in the accessibility tree and the
+          tab order. `inert` removes them entirely — a focus trap alone cannot
+          fix that, because the problem is the *closed* state. */}
+      <aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        inert={!isOpen}
         className={`fixed top-0 right-0 h-screen w-full max-w-2xl bg-[#0d1326] border-l border-slate-800 shadow-2xl z-50 transition-transform duration-300 ease-out overflow-y-auto flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
@@ -255,8 +265,8 @@ export default function CandidateDrawer({
               {initials}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">{candidate.candidate_name}</h2>
-              <p className="text-xs text-slate-450 mt-1 font-medium">
+              <h2 id={titleId} className="text-xl font-bold text-white tracking-tight">{candidate.candidate_name}</h2>
+              <p className="text-xs text-content-muted mt-1 font-medium">
                 {candidate.extracted_info?.education || 'Unknown Degree'} • {candidate.extracted_info?.experience_years || 0} YOE
               </p>
             </div>
@@ -267,11 +277,13 @@ export default function CandidateDrawer({
               <Zap className="w-3.5 h-3.5" />
               <span>{candidate.score.toFixed(0)}% Match</span>
             </div>
-            <button 
+            <button
+              type="button"
               onClick={onClose}
+              aria-label="Close candidate details"
               className="w-9 h-9 rounded-lg border border-slate-800 bg-[#080c18] flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
             >
-              <X className="w-4.5 h-4.5" />
+              <X className="w-4.5 h-4.5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -281,8 +293,8 @@ export default function CandidateDrawer({
           {/* AI generated summary */}
           <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18]/80 text-left shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-blue-450" />
-              <h4 className="text-xs font-bold text-blue-455 uppercase tracking-widest leading-none">HireGrid.io AI Summary</h4>
+              <Sparkles className="w-4 h-4 text-blue-400" />
+              <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest leading-none">HireGrid.io AI Summary</h4>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed font-medium">
               {candidate.summary}
@@ -347,16 +359,22 @@ export default function CandidateDrawer({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Status Selector */}
               <div className="space-y-1.5 text-left">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Candidate Status</label>
+                <label htmlFor={statusId} className="text-[10px] font-bold text-content-muted uppercase tracking-wider block">Candidate Status</label>
+                {/* Values must match ALLOWED_CANDIDATE_STATUSES in backend/app.py;
+                    the API rejects anything else with a 400. */}
                 <select
+                  id={statusId}
                   value={status}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   disabled={isSaving}
-                  className="w-full bg-[#060913] border border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 focus:outline-none focus:border-blue-500 cursor-pointer"
+                  className="w-full bg-[#060913] border border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 focus:border-blue-500 cursor-pointer"
                 >
                   <option value="Applied">Applied</option>
+                  <option value="Screening">Screening</option>
                   <option value="Shortlisted">Shortlisted</option>
-                  <option value="Interviewing">Interviewing</option>
+                  <option value="Interview">Interview</option>
+                  <option value="Offer">Offer</option>
+                  <option value="Hired">Hired</option>
                   <option value="Rejected">Rejected</option>
                 </select>
               </div>
@@ -364,9 +382,12 @@ export default function CandidateDrawer({
               {/* Status Badge display */}
               <div className="flex items-end pb-1 text-left">
                 <span className={`text-[10px] px-2.5 py-1 rounded font-bold uppercase ${
-                  status === 'Shortlisted' ? 'bg-emerald-500/15 text-emerald-450 border border-emerald-500/20' :
-                  status === 'Interviewing' ? 'bg-blue-500/15 text-blue-450 border border-blue-500/20' :
-                  status === 'Rejected' ? 'bg-red-500/15 text-red-455 border border-red-500/20' :
+                  status === 'Shortlisted' || status === 'Hired' || status === 'Offer'
+                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
+                  status === 'Interview' || status === 'Screening'
+                    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20' :
+                  status === 'Rejected' || status === 'Auto-Rejected'
+                    ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
                   'bg-slate-800 text-slate-400 border border-slate-800'
                 }`}>
                   Current Phase: {status}
@@ -377,50 +398,51 @@ export default function CandidateDrawer({
             {/* Recruiter Notes */}
             <div className="space-y-1.5 text-left">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Recruiter Notes & Feedback</label>
+                <label htmlFor={notesId} className="text-[10px] font-bold text-content-muted uppercase tracking-wider block">Recruiter Notes & Feedback</label>
                 {isSaving && <span className="text-[9px] text-blue-400 animate-pulse font-semibold uppercase">Saving...</span>}
               </div>
               <textarea
+                id={notesId}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 onBlur={handleSaveNotes}
                 placeholder="Write interview feedback, technical ratings, or evaluation notes here..."
-                className="w-full h-24 bg-[#060913] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 placeholder-slate-650 focus:outline-none focus:border-blue-500 resize-none font-medium"
+                className="w-full h-24 bg-[#060913] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 placeholder-content-faint focus:border-blue-500 resize-none font-medium"
               />
-              <p className="text-[9px] text-slate-600 italic mt-1 text-right">Notes are saved automatically when clicking outside the input area.</p>
+              <p className="text-[9px] text-content-muted italic mt-1 text-right">Notes are saved automatically when clicking outside the input area.</p>
             </div>
           </div>
 
           {/* Grid layout for detailed parameters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
-              <Briefcase className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
+              <Briefcase className="w-5 h-5 text-content-faint mt-0.5 shrink-0" />
               <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Experience Level</span>
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider">Experience Level</span>
                 <p className="text-sm font-semibold text-white mt-1">{candidate.extracted_info?.experience_years ?? 0} Years</p>
               </div>
             </div>
 
             <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
-              <BookOpen className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
+              <BookOpen className="w-5 h-5 text-content-faint mt-0.5 shrink-0" />
               <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Education Level</span>
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider">Education Level</span>
                 <p className="text-sm font-semibold text-white mt-1">{candidate.extracted_info?.education || 'Unknown'}</p>
               </div>
             </div>
 
             <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
-              <MapPin className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
+              <MapPin className="w-5 h-5 text-content-faint mt-0.5 shrink-0" />
               <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Applicant Location</span>
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider">Applicant Location</span>
                 <p className="text-sm font-semibold text-white mt-1">{candidate.extracted_info?.location || 'Not Specified'}</p>
               </div>
             </div>
 
             <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/40 flex items-start gap-3 text-left">
-              <Globe className="w-5 h-5 text-slate-500 mt-0.5 shrink-0" />
+              <Globe className="w-5 h-5 text-content-faint mt-0.5 shrink-0" />
               <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Spoken Languages</span>
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-wider">Spoken Languages</span>
                 <p className="text-sm font-semibold text-white mt-1 truncate">
                   {candidate.extracted_info?.languages && candidate.extracted_info.languages.length > 0 
                     ? candidate.extracted_info.languages.join(', ') 
@@ -434,7 +456,7 @@ export default function CandidateDrawer({
           <div className="space-y-4">
             <div className="text-left">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Weighted Matching Breakdown</h3>
-              <p className="text-xs text-slate-500 mt-1">Component details parsed against target parameters.</p>
+              <p className="text-xs text-content-muted mt-1">Component details parsed against target parameters.</p>
             </div>
             
             <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-4 text-left shadow-inner">
@@ -443,9 +465,9 @@ export default function CandidateDrawer({
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-slate-400 group-hover:text-slate-200 transition-colors">{item.label}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
-                      item.value >= 80 ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' :
-                      item.value >= 60 ? 'bg-blue-500/10 text-blue-450 border border-blue-500/20' :
-                      'bg-slate-900 text-slate-500 border border-slate-800'
+                      item.value >= 80 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      item.value >= 60 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                      'bg-slate-900 text-content-muted border border-slate-800'
                     }`}>{item.value.toFixed(0)}%</span>
                   </div>
                   <div className="w-full h-2.5 rounded-full bg-slate-950 overflow-hidden border border-slate-900">
@@ -464,20 +486,20 @@ export default function CandidateDrawer({
             {/* Matched Skills */}
             <div className="space-y-3 text-left">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-450" />
-                <h4 className="text-xs font-bold text-emerald-455 uppercase tracking-wider">Matched Core Stack ({candidate.matched_skills.length})</h4>
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Matched Core Stack ({candidate.matched_skills.length})</h4>
               </div>
               <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/50 min-h-[140px] flex flex-wrap gap-2 content-start">
                 {candidate.matched_skills.map((skill, idx) => (
                   <span 
                     key={idx}
-                    className="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-350"
+                    className="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
                   >
                     {skill}
                   </span>
                 ))}
                 {candidate.matched_skills.length === 0 && (
-                  <span className="text-xs text-slate-500 italic">No skills matched directly.</span>
+                  <span className="text-xs text-content-muted italic">No skills matched directly.</span>
                 )}
               </div>
             </div>
@@ -485,8 +507,8 @@ export default function CandidateDrawer({
             {/* Missing Skills */}
             <div className="space-y-3 text-left">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-red-450" />
-                <h4 className="text-xs font-bold text-red-455 uppercase tracking-wider">Missing Competencies ({candidate.missing_skills.length})</h4>
+                <ShieldAlert className="w-4 h-4 text-red-400" />
+                <h4 className="text-xs font-bold text-red-400 uppercase tracking-wider">Missing Competencies ({candidate.missing_skills.length})</h4>
               </div>
               <div className="p-4 rounded-lg border border-slate-800 bg-[#080c18]/50 min-h-[140px] flex flex-wrap gap-2 content-start">
                 {candidate.missing_skills.map((skill, idx) => (
@@ -498,7 +520,7 @@ export default function CandidateDrawer({
                   </span>
                 ))}
                 {candidate.missing_skills.length === 0 && (
-                  <span className="text-xs text-slate-500 italic">No critical skill gaps identified.</span>
+                  <span className="text-xs text-content-muted italic">No critical skill gaps identified.</span>
                 )}
               </div>
             </div>
@@ -508,7 +530,7 @@ export default function CandidateDrawer({
           <div className="space-y-4">
             <div className="text-left">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Career Chronology & Role Matches</h3>
-              <p className="text-xs text-slate-500 mt-1">Job history extracted sequentially from parsed CV document.</p>
+              <p className="text-xs text-content-muted mt-1">Job history extracted sequentially from parsed CV document.</p>
             </div>
 
             <div className="p-5 rounded-lg border border-slate-800 bg-[#080c18] space-y-5 relative text-left">
@@ -525,7 +547,7 @@ export default function CandidateDrawer({
                       
                       <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border z-10 ${
                         isSenior 
-                          ? 'bg-blue-500/10 border-blue-500/20 text-blue-455' 
+                          ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
                           : isJunior 
                           ? 'bg-purple-500/5 border-purple-500/10 text-purple-400' 
                           : 'bg-slate-900 border-slate-800 text-slate-400'
@@ -535,7 +557,7 @@ export default function CandidateDrawer({
                       
                       <div>
                         <h4 className="text-sm font-semibold text-white leading-tight">{title}</h4>
-                        <p className="text-xs text-slate-500 mt-1.5 font-normal">
+                        <p className="text-xs text-content-muted mt-1.5 font-normal">
                           {idx === 0 ? 'Most Recent Engagement' : idx === 1 ? 'Previous Engagement' : 'Historic Core Position'}
                         </p>
                       </div>
@@ -549,7 +571,7 @@ export default function CandidateDrawer({
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold text-white leading-tight">Professional Profile Sequence</h4>
-                    <p className="text-xs text-slate-500 mt-1">Parsed chronological text profile is mapped. Standard history is loaded.</p>
+                    <p className="text-xs text-content-muted mt-1">Parsed chronological text profile is mapped. Standard history is loaded.</p>
                   </div>
                 </div>
               )}
@@ -564,7 +586,7 @@ export default function CandidateDrawer({
                 {candidate.extracted_info.certifications.map((cert: string, idx: number) => (
                   <span 
                     key={idx}
-                    className="px-2.5 py-1 text-xs font-semibold rounded bg-slate-900 border border-slate-800 text-slate-355"
+                    className="px-2.5 py-1 text-xs font-semibold rounded bg-slate-900 border border-slate-800 text-content-secondary"
                   >
                     {cert}
                   </span>

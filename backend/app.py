@@ -8,7 +8,7 @@ if os.path.exists(parent_env):
 else:
     load_dotenv()
 
-from fastapi import FastAPI, File, UploadFile, Form, Header, Depends
+from fastapi import FastAPI, File, UploadFile, Form, Header, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse
 from fastapi.concurrency import run_in_threadpool
@@ -16,17 +16,32 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 import asyncio
 import json
+import uuid
+import secrets
 
 from core.parser import extract_text_from_pdf
 from core.nlp_layer import extract_all
 from core.similarity import compute_semantic_similarity, compute_batch_skill_similarity, model as semantic_model
+from core.skill_weights import parse_skill_weights
 from core.rules_engine import (
     compute_final_score,
     get_matched_missing_skills,
     generate_summary
 )
 
-app = FastAPI(title="HireGrid.io API", version="2.0.0")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Replaces the deprecated @app.on_event("startup") hook.
+    from core.db import init_db as _init_db
+    _init_db()
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    yield
+
+
+app = FastAPI(title="HireGrid.io API", version="2.0.0", lifespan=lifespan)
 
 # Parse allowed origins from environment variable
 allowed_origins_raw = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000")
@@ -71,6 +86,52 @@ class UserResponse(BaseModel):
     role: str
     token: Optional[str] = None
 
+# ── Login throttling ──────────────────────────────────────────────────────────
+# Fixed-window counter keyed by client IP + email. In-process only: it protects a
+# single-worker deployment (which is how this ships) but does not coordinate
+# across replicas. Put a gateway-level limiter in front for multi-worker setups.
+import time as _time
+import threading as _threading
+from collections import defaultdict as _defaultdict
+
+LOGIN_MAX_ATTEMPTS = int(os.environ.get("LOGIN_MAX_ATTEMPTS", "10"))
+LOGIN_WINDOW_SECONDS = int(os.environ.get("LOGIN_WINDOW_SECONDS", "300"))
+
+_login_attempts: dict = _defaultdict(list)
+_login_lock = _threading.Lock()
+
+
+def _rate_limit_login(request: Request, email: str) -> None:
+    client_ip = request.client.host if request.client else "unknown"
+    key = f"{client_ip}|{email.strip().lower()}"
+    now = _time.monotonic()
+    cutoff = now - LOGIN_WINDOW_SECONDS
+
+    with _login_lock:
+        recent = [t for t in _login_attempts[key] if t > cutoff]
+        if len(recent) >= LOGIN_MAX_ATTEMPTS:
+            retry_after = int(LOGIN_WINDOW_SECONDS - (now - recent[0])) + 1
+            _login_attempts[key] = recent
+            raise HTTPException(
+                status_code=429,
+                detail="Too many login attempts. Try again later.",
+                headers={"Retry-After": str(max(1, retry_after))},
+            )
+        recent.append(now)
+        _login_attempts[key] = recent
+
+        # Opportunistic sweep so the dict cannot grow without bound.
+        if len(_login_attempts) > 10000:
+            for k in [k for k, v in _login_attempts.items() if not any(t > cutoff for t in v)]:
+                del _login_attempts[k]
+
+
+def _clear_login_attempts(request: Request, email: str) -> None:
+    client_ip = request.client.host if request.client else "unknown"
+    with _login_lock:
+        _login_attempts.pop(f"{client_ip}|{email.strip().lower()}", None)
+
+
 def check_authorization(authorization: Optional[str] = Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Authentication token required")
@@ -82,10 +143,9 @@ def check_authorization(authorization: Optional[str] = Header(None)) -> dict:
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
 
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Maximum accepted resume size. nginx caps the whole request at 100M; this bounds
+# any single file so one oversized upload cannot exhaust disk.
+MAX_RESUME_BYTES = int(os.environ.get("MAX_RESUME_BYTES", str(15 * 1024 * 1024)))
 
 @app.post("/api/auth/signup", response_model=UserResponse, status_code=201)
 async def signup(payload: UserSignup):
@@ -129,16 +189,20 @@ async def signup(payload: UserSignup):
     )
 
 @app.post("/api/auth/login", response_model=UserResponse)
-async def login(payload: UserLogin):
+async def login(payload: UserLogin, request: Request):
     email_clean = payload.email.strip().lower()
+    _rate_limit_login(request, email_clean)
+
     user = db_get_user_by_email(email_clean)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
     # Verify password
     if not verify_password(payload.password, user["password_hash"], user["password_salt"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
+    # Only a successful login clears the counter, so failures keep accumulating.
+    _clear_login_attempts(request, email_clean)
     token = generate_session_token(user["email"], user["role"])
     return UserResponse(
         email=user["email"],
@@ -153,8 +217,14 @@ async def google_login(payload: GoogleLogin):
     if not credential:
         raise HTTPException(status_code=400, detail="Missing Google credential")
 
-    # Developer Mock Mode check
-    allow_dev_bypass = os.environ.get("ALLOW_DEV_BYPASS", "false").lower() == "tr" + "ue"
+    # Developer mock mode. This accepts an unsigned, self-asserted email, so it
+    # is a complete authentication bypass — it must never be reachable in
+    # production, regardless of how ALLOW_DEV_BYPASS is set.
+    is_production = os.environ.get("ENV", "development").strip().lower() == "production"
+    allow_dev_bypass = (
+        not is_production
+        and os.environ.get("ALLOW_DEV_BYPASS", "false").strip().lower() == "true"
+    )
     if allow_dev_bypass and (credential == "mock_google_jwt_token_bypass" or credential.startswith("mock_google_jwt_")):
         email = "demo.recruiter@hiregrid.io"
         name = "Demo Recruiter"
@@ -217,9 +287,9 @@ async def google_login(payload: GoogleLogin):
     
     # If the user doesn't exist, we auto-signup the account with default settings!
     if not user:
-        import uuid
-        # Generate random complex password to satisfy sqlite NOT NULL constraints
-        temp_pass = str(uuid.uuid4())
+        # OAuth accounts never authenticate by password; this only satisfies the
+        # NOT NULL constraint with a value nobody can guess or use.
+        temp_pass = secrets.token_urlsafe(32)
         h_hash, h_salt = hash_password(temp_pass)
         
         user = db_create_user(
@@ -246,9 +316,10 @@ from core.db import (
     db_delete_screening,
     db_update_candidate_status,
     db_update_candidate_notes,
-    db_get_candidate_by_id,
+    db_get_candidate_owned,
     db_create_screening,
-    db_create_candidate
+    db_create_candidate,
+    db_get_analytics
 )
 
 @app.get("/api/screenings")
@@ -292,38 +363,62 @@ class StatusUpdatePayload(BaseModel):
 class NotesUpdatePayload(BaseModel):
     notes: str
 
+ALLOWED_CANDIDATE_STATUSES = {"Applied", "Screening", "Shortlisted", "Interview", "Offer", "Hired", "Rejected", "Auto-Rejected"}
+
+
 @app.patch("/api/candidates/{cand_id}/status")
 async def update_candidate_status(cand_id: str, payload: StatusUpdatePayload, authorization: Optional[str] = Header(None)):
-    check_authorization(authorization)
-    success = db_update_candidate_status(cand_id, payload.status)
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to update status")
-    return {"message": "Status updated successfully", "status": payload.status}
+    user = check_authorization(authorization)
+    status_clean = payload.status.strip()
+    if status_clean not in ALLOWED_CANDIDATE_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status. Allowed: {', '.join(sorted(ALLOWED_CANDIDATE_STATUSES))}",
+        )
+    # Ownership is enforced inside the UPDATE, so a candidate belonging to
+    # another user matches no rows and reads back as 404.
+    if not db_update_candidate_status(cand_id, status_clean, user["email"]):
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    return {"message": "Status updated successfully", "status": status_clean}
 
 @app.patch("/api/candidates/{cand_id}/notes")
 async def update_candidate_notes(cand_id: str, payload: NotesUpdatePayload, authorization: Optional[str] = Header(None)):
-    check_authorization(authorization)
-    success = db_update_candidate_notes(cand_id, payload.notes)
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to update notes")
+    user = check_authorization(authorization)
+    if not db_update_candidate_notes(cand_id, payload.notes, user["email"]):
+        raise HTTPException(status_code=404, detail="Candidate not found")
     return {"message": "Notes updated successfully", "notes": payload.notes}
 
 @app.get("/api/candidates/{cand_id}/cv")
 async def get_candidate_cv(cand_id: str, authorization: Optional[str] = Header(None)):
-    check_authorization(authorization)
-    cand = db_get_candidate_by_id(cand_id)
+    user = check_authorization(authorization)
+    cand = db_get_candidate_owned(cand_id, user["email"])
     if not cand:
         raise HTTPException(status_code=404, detail="Candidate not found")
-        
+
     file_path = cand.get("file_path")
-    if not file_path or not os.path.exists(file_path):
+    if not file_path:
         raise HTTPException(status_code=404, detail="Resume file not found")
-        
+
+    # Defence in depth: the stored path is server-generated, but resolving it and
+    # confirming it sits under UPLOAD_DIR means a tampered row still cannot read
+    # arbitrary files off disk.
+    resolved = os.path.realpath(file_path)
+    if os.path.commonpath([resolved, os.path.realpath(UPLOAD_DIR)]) != os.path.realpath(UPLOAD_DIR):
+        raise HTTPException(status_code=404, detail="Resume file not found")
+    if not os.path.exists(resolved):
+        raise HTTPException(status_code=404, detail="Resume file not found")
+
     return FileResponse(
-        path=file_path,
+        path=resolved,
         media_type="application/pdf",
         filename=cand.get("candidate_filename", f"{cand_id}.pdf")
     )
+
+
+@app.get("/api/analytics")
+async def get_analytics(authorization: Optional[str] = Header(None)):
+    user = check_authorization(authorization)
+    return db_get_analytics(user["email"])
 
 
 
@@ -345,34 +440,192 @@ MASTER_SKILL_LEXICON = {
     "blockchain", "solidity", "web3",
     "selenium", "cypress", "jest", "pytest", "unit testing",
     "excel", "power bi", "tableau", "data analysis", "data visualization",
-    # New Skills from SKILL directory
-    "cavecrew", "caveman", "caveman-commit", "caveman commit", "caveman-review", "caveman review",
-    "caveman-stats", "caveman stats", "executing-plans", "executing plans",
-    "finishing-a-development-branch", "finishing a development branch",
-    "subagent-driven-development", "subagent driven development", "writing-plans", "writing plans",
-    "docker-expert", "docker expert", "senior-backend", "senior backend", "supabase",
-    "supabase-postgres-best-practices", "supabase postgres best practices",
-    "workflow-automation", "workflow automation", "3d-web-experience", "3d web experience",
-    "design-motion-principles", "design motion principles", "frontend-design", "frontend design",
-    "impeccable", "scroll-experience", "scroll experience", "senior-architect", "senior architect",
-    "senior-ml-engineer", "senior ml engineer", "senior-security", "senior security",
-    "seo", "seo-audit", "seo audit", "seo-backlinks", "seo backlinks", "seo-cluster", "seo cluster",
-    "seo-competitor-pages", "seo competitor pages", "seo-content", "seo content",
-    "seo-content-brief", "seo content brief", "seo-dataforseo", "seo dataforseo", "seo-drift", "seo drift",
-    "seo-ecommerce", "seo ecommerce", "seo-flow", "seo flow", "seo-geo", "seo geo", "seo-google", "seo google",
-    "seo-hreflang", "seo hreflang", "seo-image-gen", "seo image gen", "seo-images", "seo images",
-    "seo-local", "seo local", "seo-maps", "seo maps", "seo-optimizer", "seo optimizer", "seo-page", "seo page",
-    "seo-plan", "seo plan", "seo-programmatic", "seo programmatic", "seo-schema", "seo schema",
-    "seo-sitemap", "seo sitemap", "seo-sxo", "seo sxo", "seo-technical", "seo technical",
-    "find-bugs", "find bugs", "playwright-skill", "playwright skill", "senior-qa", "senior qa",
-    "test-driven-development", "test driven development", "webapp-testing", "webapp testing",
-    "code-reviewer", "code reviewer", "file-organizer", "file organizer", "skill-builder", "skill builder"
+    "seo", "content marketing", "copywriting", "technical writing",
 }
 
 
 @app.get("/")
 async def root():
     return {"message": "HireGrid.io API is running", "version": "2.0.0"}
+
+
+@app.get("/api/system")
+async def system_status():
+    """
+    What the engine is actually running.
+
+    The sidebar previously hardcoded these three lines, so it reported
+    "spaCy Active" for a library that is no longer installed and "SQLite
+    Connected" regardless of which database was in use. A status panel that
+    cannot be wrong is not a status panel.
+    """
+    from core.db import USE_SQLITE
+    from core.similarity import MODEL_NAME
+
+    return {
+        "version": app.version,
+        "extraction": "Rule-based",
+        "database": "SQLite" if USE_SQLITE else "PostgreSQL",
+        "embedding_model": MODEL_NAME,
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Analysis pipeline
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Relevance floor. A candidate below BOTH thresholds is recorded as auto-rejected
+# rather than ranked. Rejections are kept (not discarded) so a recruiter can see
+# and audit who was filtered out and why.
+AUTO_REJECT_SKILL_SIM = float(os.environ.get("AUTO_REJECT_SKILL_SIM", "10.0"))
+AUTO_REJECT_SEMANTIC = float(os.environ.get("AUTO_REJECT_SEMANTIC", "20.0"))
+
+STATUS_AUTO_REJECTED = "Auto-Rejected"
+STATUS_APPLIED = "Applied"
+
+
+def _build_job_reqs(job_title, required_skills, required_experience_years,
+                    required_education, preferred_location, preferred_languages,
+                    required_certifications):
+    # Importance markers ("Python!", "Jira?") are stripped here, so everything
+    # downstream — matching, display, storage — sees ordinary skill names.
+    req_skills_list, skill_weights = parse_skill_weights(required_skills)
+    pref_lang_list = [l.strip() for l in (preferred_languages or "").split(",") if l.strip()]
+    req_cert_list = [c.strip() for c in (required_certifications or "").split(",") if c.strip()]
+
+    return req_skills_list, {
+        "job_title": job_title,
+        "required_skills": req_skills_list,
+        "skill_weights": skill_weights,
+        "required_experience_years": required_experience_years,
+        "required_education": required_education,
+        "preferred_location": preferred_location or "",
+        "preferred_languages": pref_lang_list,
+        "required_certifications": req_cert_list,
+    }
+
+
+def _rejection_record(cand_id, filename, candidate_name, req_skills_list, reason,
+                      file_path=None, extracted=None):
+    """Uniform shape for a candidate that did not clear the relevance floor."""
+    extracted_info = {}
+    if extracted:
+        extracted_info = {
+            "experience_years": extracted.get("experience", 0.0),
+            "education": extracted.get("education", "Unknown"),
+            "location": extracted.get("location", ""),
+            "email": extracted.get("email", ""),
+            "phone": extracted.get("phone", ""),
+        }
+    return {
+        "candidate_id": cand_id,
+        "candidate_name": candidate_name or filename,
+        "candidate_filename": filename,
+        "file_path": file_path,
+        "score": 0.0,
+        "score_breakdown": {},
+        "matched_skills": [],
+        "missing_skills": req_skills_list,
+        "extracted_info": extracted_info,
+        "summary": f"{filename}: {reason}",
+        "status": STATUS_AUTO_REJECTED,
+        "audit_log": {"skills": reason},
+    }
+
+
+def _score_one_candidate(raw_text, filename, cand_id, skill_lexicon, req_skills_list,
+                         job_reqs, job_description, file_path=None):
+    """
+    Full extraction + scoring for a single resume.
+
+    Returns (record, is_ranked). `is_ranked` is False for auto-rejections, which
+    are still returned so they can be surfaced and stored.
+    """
+    extracted = extract_all(raw_text, skill_lexicon, filename)
+    candidate_name = extracted.get("candidate_name", "") or filename
+
+    # Scored against section chunks rather than a leading excerpt, so relevant
+    # experience further down a multi-page CV still counts.
+    semantic_score = compute_semantic_similarity(
+        job_description, extracted["summary"], extracted.get("chunks")
+    )
+    skill_sim_score = compute_batch_skill_similarity(
+        req_skills_list, extracted["skills"], extracted["summary"],
+        skill_weights=job_reqs.get("skill_weights"),
+    )
+
+    # Relevance floor is evaluated on semantic signal, never on exact string
+    # overlap alone: "ReactJS" vs "React" is a vocabulary difference, not a
+    # missing skill, and rejecting on it discards qualified candidates before
+    # the semantic layer that exists to catch exactly that case.
+    if skill_sim_score < AUTO_REJECT_SKILL_SIM and semantic_score < AUTO_REJECT_SEMANTIC:
+        return _rejection_record(
+            cand_id, filename, candidate_name, req_skills_list,
+            "Insufficient relevance to the job requirements (auto-rejected).",
+            file_path=file_path, extracted=extracted,
+        ), False
+
+    scoring = compute_final_score(extracted, job_reqs, semantic_score, skill_sim_score, semantic_model)
+    matched, missing = get_matched_missing_skills(req_skills_list, extracted["skills"])
+    summary = generate_summary(
+        candidate_name, matched, missing,
+        scoring["breakdown"]["experience"], semantic_score, scoring["final_score"],
+    )
+
+    return {
+        "candidate_id": cand_id,
+        "candidate_name": candidate_name,
+        "candidate_filename": filename,
+        "file_path": file_path,
+        "score": scoring["final_score"],
+        "score_breakdown": scoring["breakdown"],
+        "matched_skills": matched,
+        "missing_skills": missing,
+        "extracted_info": {
+            "experience_years": extracted["experience"],
+            "education": extracted["education"],
+            "education_details": extracted.get("education_details", {}),
+            "location": extracted["location"],
+            "certifications": extracted["certifications"],
+            "languages": extracted["languages"],
+            "projects_count": len(extracted["projects"]),
+            "past_titles": extracted.get("past_titles", []),
+            "projects": extracted.get("projects", []),
+            "email": extracted.get("email", ""),
+            "phone": extracted.get("phone", ""),
+        },
+        "summary": summary,
+        "status": STATUS_APPLIED,
+        "audit_log": scoring.get("audit_log", {}),
+    }, True
+
+
+async def _spool_upload(upload: UploadFile, dest_path: str) -> int:
+    """
+    Copy an upload to disk in chunks.
+
+    Reading every file fully into memory first means a 100-CV batch holds the
+    entire batch in RAM before any work starts. Returns bytes written.
+    """
+    total = 0
+    with open(dest_path, "wb") as out:
+        while True:
+            chunk = await upload.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > MAX_RESUME_BYTES:
+                out.close()
+                raise ValueError(
+                    f"File exceeds the {MAX_RESUME_BYTES // (1024 * 1024)}MB limit"
+                )
+            out.write(chunk)
+    return total
+
+
+def _read_file_bytes(path: str) -> bytes:
+    with open(path, "rb") as f:
+        return f.read()
 
 
 @app.post("/api/analyze")
@@ -389,129 +642,51 @@ async def analyze_resumes(
     resumes: List[UploadFile] = File(...),
     authorization: Optional[str] = Header(None)
 ):
+    """Stateless scoring endpoint: ranks the batch without persisting anything."""
     check_authorization(authorization)
-    req_skills_list = [s.strip() for s in required_skills.split(",") if s.strip()]
-    pref_lang_list = [l.strip() for l in preferred_languages.split(",") if l.strip()] if preferred_languages else []
-    req_cert_list = [c.strip() for c in required_certifications.split(",") if c.strip()] if required_certifications else []
-
-    job_reqs = {
-        "job_title": job_title,
-        "required_skills": req_skills_list,
-        "required_experience_years": required_experience_years,
-        "required_education": required_education,
-        "preferred_location": preferred_location or "",
-        "preferred_languages": pref_lang_list,
-        "required_certifications": req_cert_list
-    }
-
+    req_skills_list, job_reqs = _build_job_reqs(
+        job_title, required_skills, required_experience_years, required_education,
+        preferred_location, preferred_languages, required_certifications,
+    )
     skill_lexicon = MASTER_SKILL_LEXICON | {s.lower() for s in req_skills_list}
-    results = []
+
+    ranked, rejected = [], []
 
     for resume in resumes:
+        tmp_path = os.path.join(UPLOAD_DIR, f"tmp-{uuid.uuid4().hex}.pdf")
         try:
-            file_bytes = await resume.read()
-            raw_text = await run_in_threadpool(extract_text_from_pdf, file_bytes)
-
+            await _spool_upload(resume, tmp_path)
+            raw_text = await run_in_threadpool(extract_text_from_pdf, _read_file_bytes(tmp_path))
             if not raw_text.strip():
                 raw_text = f"Resume: {resume.filename}"
 
-            extracted = await run_in_threadpool(extract_all, raw_text, skill_lexicon, resume.filename)
-
-            # ── Zero-Skill Intersection Short-Circuit ────────────────────────
-            matched_skills_count = len(set(s.lower() for s in extracted["skills"]) & set(s.lower() for s in req_skills_list))
-            if len(req_skills_list) > 0 and matched_skills_count == 0:
-                results.append({
-                    "candidate_id": resume.filename,
-                    "candidate_name": extracted.get("candidate_name", "") or resume.filename,
-                    "score": 0.0,
-                    "score_breakdown": {},
-                    "matched_skills": [],
-                    "missing_skills": req_skills_list,
-                    "extracted_info": {},
-                    "summary": f"{resume.filename}: Auto-rejected due to zero matching required skills.",
-                    "audit_log": {
-                        "skills": "Auto-rejected due to zero matching required skills."
-                    }
-                })
-                continue
-            # ───────────────────────────────────────────────────────────────
-
-            semantic_score = await run_in_threadpool(compute_semantic_similarity, job_description, extracted["summary"])
-            skill_sim_score = await run_in_threadpool(
-                compute_batch_skill_similarity, req_skills_list, extracted["skills"], extracted["summary"]
+            record, is_ranked = await run_in_threadpool(
+                _score_one_candidate, raw_text, resume.filename, resume.filename,
+                skill_lexicon, req_skills_list, job_reqs, job_description,
             )
-
-            # ── Auto-reject filter ──────────────────────────────────────────
-            if skill_sim_score < 10.0 and semantic_score < 20.0:
-                results.append({
-                    "candidate_id": resume.filename,
-                    "candidate_name": extracted.get("candidate_name", "") or resume.filename,
-                    "score": 0.0,
-                    "score_breakdown": {},
-                    "matched_skills": [],
-                    "missing_skills": req_skills_list,
-                    "extracted_info": {},
-                    "summary": f"{resume.filename}: Insufficient relevance to the job requirements (auto-rejected).",
-                    "audit_log": {
-                        "skills": "Auto-rejected due to insufficient skills match and semantic similarity."
-                    }
-                })
-                continue
-            # ───────────────────────────────────────────────────────────────
-
-            scoring = await run_in_threadpool(compute_final_score, extracted, job_reqs, semantic_score, skill_sim_score, semantic_model)
-            matched, missing = get_matched_missing_skills(req_skills_list, extracted["skills"])
-
-            candidate_name = extracted.get("candidate_name", "") or resume.filename
-            summary = generate_summary(
-                candidate_name, matched, missing,
-                scoring["breakdown"]["experience"],
-                semantic_score,
-                scoring["final_score"]
-            )
-
-            results.append({
-                "candidate_id": resume.filename,
-                "candidate_name": candidate_name,
-                "score": scoring["final_score"],
-                "score_breakdown": scoring["breakdown"],
-                "matched_skills": matched,
-                "missing_skills": missing,
-                "extracted_info": {
-                    "experience_years": extracted["experience"],
-                    "education": extracted["education"],
-                    "education_details": extracted.get("education_details", {}),
-                    "location": extracted["location"],
-                    "certifications": extracted["certifications"],
-                    "languages": extracted["languages"],
-                    "projects_count": len(extracted["projects"]),
-                    "past_titles": extracted.get("past_titles", []),
-                    "projects": extracted.get("projects", []),
-                    "email": extracted.get("email", ""),
-                    "phone": extracted.get("phone", "")
-                },
-                "summary": summary,
-                "audit_log": scoring.get("audit_log", {})
-            })
+            (ranked if is_ranked else rejected).append(record)
         except Exception as e:
-            results.append({
-                "candidate_id": resume.filename,
-                "candidate_name": resume.filename,
-                "score": 0.0,
-                "score_breakdown": {},
-                "matched_skills": [],
-                "missing_skills": req_skills_list,
-                "extracted_info": {},
-                "summary": f"Error processing {resume.filename}: {str(e)}"
-            })
+            rejected.append(_rejection_record(
+                resume.filename, resume.filename, resume.filename, req_skills_list,
+                f"Error processing file: {e}",
+            ))
+        finally:
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
 
-    results = [c for c in results if c["score"] > 0.0]
-    results.sort(key=lambda x: x["score"], reverse=True)
+    ranked.sort(key=lambda x: x["score"], reverse=True)
 
     return {
         "job_title": job_title,
         "total_candidates": len(resumes),
-        "ranked_candidates": results[:top_n_candidates]
+        "ranked_candidates": ranked[:top_n_candidates],
+        # Rejections are reported, not silently dropped: a screening tool must be
+        # able to show who was filtered out and on what grounds.
+        "rejected_candidates": rejected,
+        "total_ranked": len(ranked),
+        "total_rejected": len(rejected),
     }
 
 
@@ -529,186 +704,105 @@ async def analyze_resumes_stream(
     resumes: List[UploadFile] = File(...),
     authorization: Optional[str] = Header(None)
 ):
+    """Persisting scoring endpoint with an SSE progress feed."""
     user = check_authorization(authorization)
-    req_skills_list = [s.strip() for s in required_skills.split(",") if s.strip()]
-    pref_lang_list = [l.strip() for l in preferred_languages.split(",") if l.strip()] if preferred_languages else []
-    req_cert_list = [c.strip() for c in required_certifications.split(",") if c.strip()] if required_certifications else []
-
-    job_reqs = {
-        "job_title": job_title,
-        "required_skills": req_skills_list,
-        "required_experience_years": required_experience_years,
-        "required_education": required_education,
-        "preferred_location": preferred_location or "",
-        "preferred_languages": pref_lang_list,
-        "required_certifications": req_cert_list
-    }
-
+    req_skills_list, job_reqs = _build_job_reqs(
+        job_title, required_skills, required_experience_years, required_education,
+        preferred_location, preferred_languages, required_certifications,
+    )
     skill_lexicon = MASTER_SKILL_LEXICON | {s.lower() for s in req_skills_list}
-    resume_data = [(r.filename, await r.read()) for r in resumes]
+
+    # Spool uploads to disk up front. The request body is only readable during
+    # the handler, but the generator below runs after it returns.
+    spooled = []
+    for resume in resumes:
+        cand_id = f"cand-{uuid.uuid4().hex}"
+        file_path = os.path.join(UPLOAD_DIR, f"{cand_id}.pdf")
+        try:
+            await _spool_upload(resume, file_path)
+            spooled.append((cand_id, resume.filename, file_path, None))
+        except Exception as e:
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass
+            spooled.append((cand_id, resume.filename, None, str(e)))
 
     async def event_generator():
-        results = []
-        total = len(resume_data)
+        ranked, rejected = [], []
+        total = len(spooled)
 
         yield f"data: {json.dumps({'type': 'status', 'message': f'Starting analysis of {total} resume(s)...'})}\n\n"
         await asyncio.sleep(0.1)
 
-        for idx, (filename, file_bytes) in enumerate(resume_data):
+        for idx, (cand_id, filename, file_path, spool_error) in enumerate(spooled):
             yield f"data: {json.dumps({'type': 'progress', 'message': f'[{idx+1}/{total}] Parsing layout of {filename}...', 'step': idx+1, 'total': total})}\n\n"
             await asyncio.sleep(0.05)
 
-            import uuid
-            cand_id = f"cand-{uuid.uuid4().hex}"
-            file_path = os.path.join(UPLOAD_DIR, f"{cand_id}.pdf")
-            try:
-                with open(file_path, "wb") as f:
-                    f.write(file_bytes)
-            except Exception as e:
-                print(f"Error saving CV file to disk: {e}")
+            if spool_error:
+                rejected.append(_rejection_record(
+                    cand_id, filename, filename, req_skills_list,
+                    f"Upload failed: {spool_error}",
+                ))
+                continue
 
             try:
-                raw_text = await run_in_threadpool(extract_text_from_pdf, file_bytes)
+                raw_text = await run_in_threadpool(extract_text_from_pdf, _read_file_bytes(file_path))
                 if not raw_text.strip():
                     raw_text = f"Resume: {filename}"
 
-                yield f"data: {json.dumps({'type': 'progress', 'message': f'[{idx+1}/{total}] Extracting entities from {filename}...'})}\n\n"
+                yield f"data: {json.dumps({'type': 'progress', 'message': f'[{idx+1}/{total}] Scoring {filename}...'})}\n\n"
                 await asyncio.sleep(0.05)
 
-                extracted = await run_in_threadpool(extract_all, raw_text, skill_lexicon, filename)
-
-                # ── Zero-Skill Intersection Short-Circuit ────────────────────────
-                matched_skills_count = len(set(s.lower() for s in extracted["skills"]) & set(s.lower() for s in req_skills_list))
-                if len(req_skills_list) > 0 and matched_skills_count == 0:
-                    yield f"data: {json.dumps({'type': 'progress', 'message': f'[{idx+1}/{total}] ✗ {filename} short-circuited (0 matching skills)'})}\n\n"
-                    await asyncio.sleep(0.05)
-                    results.append({
-                        "candidate_id": cand_id,
-                        "candidate_name": extracted.get("candidate_name", "") or filename,
-                        "candidate_filename": filename,
-                        "file_path": file_path,
-                        "score": 0.0,
-                        "score_breakdown": {},
-                        "matched_skills": [],
-                        "missing_skills": req_skills_list,
-                        "extracted_info": {},
-                        "summary": f"{filename}: Auto-rejected due to zero matching required skills.",
-                        "audit_log": {
-                            "skills": "Auto-rejected due to zero matching required skills."
-                        }
-                    })
-                    try:
-                        os.remove(file_path)
-                    except Exception:
-                        pass
-                    continue
-                # ───────────────────────────────────────────────────────────────
-
-                yield f"data: {json.dumps({'type': 'progress', 'message': f'[{idx+1}/{total}] Computing semantic similarity for {filename}...'})}\n\n"
-                await asyncio.sleep(0.05)
-
-                semantic_score = await run_in_threadpool(compute_semantic_similarity, job_description, extracted["summary"])
-                skill_sim_score = await run_in_threadpool(
-                    compute_batch_skill_similarity, req_skills_list, extracted["skills"], extracted["summary"]
+                record, is_ranked = await run_in_threadpool(
+                    _score_one_candidate, raw_text, filename, cand_id,
+                    skill_lexicon, req_skills_list, job_reqs, job_description, file_path,
                 )
-
-                # ── Auto-reject filter ──────────────────────────────────────
-                if skill_sim_score < 10.0 and semantic_score < 20.0:
-                    results.append({
-                        "candidate_id": cand_id,
-                        "candidate_name": extracted.get("candidate_name", "") or filename,
-                        "candidate_filename": filename,
-                        "file_path": file_path,
-                        "score": 0.0,
-                        "score_breakdown": {},
-                        "matched_skills": [],
-                        "missing_skills": req_skills_list,
-                        "extracted_info": {},
-                        "summary": f"{filename}: Insufficient relevance to the job requirements (auto-rejected).",
-                        "audit_log": {
-                            "skills": "Auto-rejected due to insufficient skills match and semantic similarity."
-                        }
-                    })
-                    try:
-                        os.remove(file_path)
-                    except Exception:
-                        pass
-                    continue
-                # ───────────────────────────────────────────────────────────
-
-                scoring = await run_in_threadpool(compute_final_score, extracted, job_reqs, semantic_score, skill_sim_score, semantic_model)
-                matched, missing = get_matched_missing_skills(req_skills_list, extracted["skills"])
-
-                candidate_name = extracted.get("candidate_name", "") or filename
-                summary = generate_summary(candidate_name, matched, missing, scoring["breakdown"]["experience"], semantic_score, scoring["final_score"])
-
-                results.append({
-                    "candidate_id": cand_id,
-                    "candidate_name": candidate_name,
-                    "candidate_filename": filename,
-                    "file_path": file_path,
-                    "score": scoring["final_score"],
-                    "score_breakdown": scoring["breakdown"],
-                    "matched_skills": matched,
-                    "missing_skills": missing,
-                    "extracted_info": {
-                        "experience_years": extracted["experience"],
-                        "education": extracted["education"],
-                        "education_details": extracted.get("education_details", {}),
-                        "location": extracted["location"],
-                        "certifications": extracted["certifications"],
-                        "languages": extracted["languages"],
-                        "projects_count": len(extracted["projects"]),
-                        "past_titles": extracted.get("past_titles", []),
-                        "projects": extracted.get("projects", []),
-                        "email": extracted.get("email", ""),
-                        "phone": extracted.get("phone", "")
-                    },
-                    "summary": summary,
-                    "audit_log": scoring.get("audit_log", {})
-                })
+                if is_ranked:
+                    ranked.append(record)
+                else:
+                    rejected.append(record)
+                    yield f"data: {json.dumps({'type': 'progress', 'message': f'[{idx+1}/{total}] {filename} auto-rejected (below relevance floor)'})}\n\n"
+                    await asyncio.sleep(0.05)
 
             except Exception as e:
-                results.append({
-                    "candidate_id": cand_id,
-                    "candidate_name": filename,
-                    "candidate_filename": filename,
-                    "file_path": file_path,
-                    "score": 0.0,
-                    "score_breakdown": {},
-                    "matched_skills": [],
-                    "missing_skills": req_skills_list,
-                    "extracted_info": {},
-                    "summary": f"Error processing {filename}: {str(e)}"
-                })
+                rejected.append(_rejection_record(
+                    cand_id, filename, filename, req_skills_list,
+                    f"Error processing file: {e}", file_path=file_path,
+                ))
+
+        ranked.sort(key=lambda x: x["score"], reverse=True)
+
+        # top_n_candidates caps what is persisted and returned. Previously the
+        # parameter was accepted and then ignored on this endpoint.
+        kept = ranked[:top_n_candidates]
+        dropped = ranked[top_n_candidates:]
+
+        # Files for candidates that will not be stored are removed, so uploads/
+        # does not accumulate orphans.
+        for record in dropped:
+            if record.get("file_path"):
                 try:
-                    os.remove(file_path)
-                except Exception:
+                    os.remove(record["file_path"])
+                except OSError:
                     pass
 
-        # Filter out auto-rejects/errors from final list and database insertion
-        results = [c for c in results if c["score"] > 0.0]
-        results.sort(key=lambda x: x["score"], reverse=True)
-
-        # 1. Create screening in database
-        import uuid
         screening_id = f"screening-{uuid.uuid4().hex}"
         db_create_screening(
             sc_id=screening_id,
             email=user["email"],
             job_title=job_title,
             job_desc=job_description,
-            req_skills=required_skills
+            req_skills=req_skills_list,
         )
 
-        # 2. Insert candidates in database
-        for cand in results:
+        for cand in kept + rejected:
             db_create_candidate(
                 cand_id=cand["candidate_id"],
                 screening_id=screening_id,
                 name=cand["candidate_name"],
                 filename=cand["candidate_filename"],
-                file_path=cand["file_path"],
+                file_path=cand.get("file_path") or "",
                 score=cand["score"],
                 breakdown=cand["score_breakdown"],
                 matched=cand["matched_skills"],
@@ -716,17 +810,12 @@ async def analyze_resumes_stream(
                 yoe=cand["extracted_info"].get("experience_years", 0.0),
                 loc=cand["extracted_info"].get("location", ""),
                 summary=cand["summary"],
-                details_json=json.dumps(cand["extracted_info"])
+                details_json=json.dumps(cand["extracted_info"]),
+                status=cand.get("status", STATUS_APPLIED),
             )
 
-        # Fetch finalized details from DB to guarantee schema-match returned payload
         new_screening_payload = db_get_screening_details(screening_id, user["email"])
-
-        final_payload = {
-            "type": "result",
-            "data": new_screening_payload
-        }
-        yield f"data: {json.dumps(final_payload)}\n\n"
+        yield f"data: {json.dumps({'type': 'result', 'data': new_screening_payload})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

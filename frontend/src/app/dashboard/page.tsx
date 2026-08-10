@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { countShortlisted } from '@/lib/score';
 import Sidebar from '@/components/dashboard/Sidebar';
 import NewScreeningForm from '@/components/forms/NewScreeningForm';
 import RankingTable from '@/components/dashboard/RankingTable';
@@ -22,110 +24,11 @@ import {
   Menu
 } from 'lucide-react';
 
-// Enterprise Seeding Data (Matches the screenshot and user's high standard)
-const SEED_SCREENINGS: Screening[] = [
-  {
-    id: "seed-screening-1",
-    job_title: "Senior Full Stack Engineer",
-    total_candidates: 3,
-    date: "May 22, 2026",
-    required_skills: ["React", "TypeScript", "Node.js", "PostgreSQL", "Docker"],
-    candidates: [
-      {
-        candidate_id: "alex_mckinney_cv.pdf",
-        candidate_name: "Alex McKinney",
-        score: 84.5,
-        score_breakdown: {
-          skills: 85.0,
-          semantic_similarity: 90.0,
-          experience: 100.0,
-          education: 100.0,
-          certifications: 50.0,
-          location: 100.0,
-          language: 100.0
-        },
-        matched_skills: ["React", "TypeScript", "Node.js", "PostgreSQL"],
-        missing_skills: ["Docker"],
-        extracted_info: {
-          experience_years: 6.5,
-          education: "Master",
-          location: "Remote",
-          languages: ["English", "Spanish"],
-          certifications: ["AWS Certified Developer"],
-          projects_count: 3,
-          past_titles: ["Lead Software Engineer", "Full Stack Developer", "Junior Engineer"],
-          projects: ["Omni-Channel FinTech SaaS", "Real-Time Collaboration Dashboard", "Inventory Tracking App"],
-          email: "alex.mckinney@example.com",
-          phone: "+1 (555) 019-2834"
-        },
-        summary: "Alex McKinney shows strong overall fit. Matches 4 required skill(s). Gaps: Docker. Experience level fully meets senior requirements (6.5 YOE). Outstanding semantic alignment with job description."
-      },
-      {
-        candidate_id: "sarah_lin_cv.pdf",
-        candidate_name: "Sarah Lin",
-        score: 68.2,
-        score_breakdown: {
-          skills: 60.0,
-          semantic_similarity: 70.0,
-          experience: 80.0,
-          education: 100.0,
-          certifications: 0.0,
-          location: 50.0,
-          language: 100.0
-        },
-        matched_skills: ["React", "TypeScript", "Docker"],
-        missing_skills: ["Node.js", "PostgreSQL"],
-        extracted_info: {
-          experience_years: 3.2,
-          education: "Bachelor",
-          location: "San Francisco",
-          languages: ["English", "Mandarin"],
-          certifications: [],
-          projects_count: 2,
-          past_titles: ["Frontend Developer", "Software Engineering Intern"],
-          projects: ["Developer Portfolio v3", "Open-Source React UI Toolkit"],
-          email: "sarah.lin@example.com",
-          phone: "+1 (555) 014-9982"
-        },
-        summary: "Sarah Lin shows moderate overall fit. Matches 3 required skill(s). Gaps: Node.js, PostgreSQL. Experience level is slightly below target senior requirements. Fair conceptual and semantic alignment."
-      },
-      {
-        candidate_id: "john_doe_cv.pdf",
-        candidate_name: "John Doe",
-        score: 42.0,
-        score_breakdown: {
-          skills: 20.0,
-          semantic_similarity: 40.0,
-          experience: 30.0,
-          education: 50.0,
-          certifications: 0.0,
-          location: 50.0,
-          language: 50.0
-        },
-        matched_skills: ["React"],
-        missing_skills: ["TypeScript", "Node.js", "PostgreSQL", "Docker"],
-        extracted_info: {
-          experience_years: 1.0,
-          education: "High School",
-          location: "Chicago",
-          languages: ["English"],
-          certifications: [],
-          projects_count: 1,
-          past_titles: ["Junior Associate Intern"],
-          projects: ["HTML Personal Site"],
-          email: "john.doe@example.com",
-          phone: "+1 (555) 012-3456"
-        },
-        summary: "John Doe shows limited overall fit. Matches 1 required skill(s). Gaps: TypeScript, Node.js, PostgreSQL, Docker. Significant experience and seniority deficits detected. Auto-routed to review."
-      }
-    ]
-  }
-];
-
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const [screenings, setScreenings] = useState<Screening[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'rankings' | 'analytics' | 'pipeline'>('rankings');
   
   // Modal & Drawer State
@@ -138,11 +41,24 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingLogs, setProcessingLogs] = useState<string[]>([]);
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [processingError, setProcessingError] = useState<string | null>(null);
 
-  // Load screenings dynamically from backend SQLite database
+  const processingPanelRef = useRef<HTMLDivElement>(null);
+  const processingTitleId = useId();
+
+  // Focus is contained for the duration of the run. Deliberately no Escape
+  // handler: cancelling an in-flight analysis by accident loses real work.
+  useFocusTrap(processingPanelRef, isProcessing);
+
+  // Load screenings from the backend.
+  //
+  // A failed request must never fall back to sample data: a recruiter cannot
+  // tell fabricated candidates from real ones, and acting on invented scores is
+  // far worse than seeing an error. Failures surface as an error banner instead.
   useEffect(() => {
     if (typeof window !== 'undefined' && user) {
       const fetchScreenings = async () => {
+        setLoadError(null);
         try {
           const token = sessionStorage.getItem('hiregrid_io_token') || '';
           const response = await fetch('/api/screenings', {
@@ -153,21 +69,22 @@ export default function Home() {
           });
           if (response.ok) {
             const data = await response.json();
-            if (data && data.length > 0) {
-              setScreenings(data);
-              setActiveId(data[0].id);
-            } else {
-              setScreenings(SEED_SCREENINGS);
-              setActiveId(SEED_SCREENINGS[0].id);
-            }
+            setScreenings(data ?? []);
+            setActiveId(data && data.length > 0 ? data[0].id : null);
           } else {
-            setScreenings(SEED_SCREENINGS);
-            setActiveId(SEED_SCREENINGS[0].id);
+            setScreenings([]);
+            setActiveId(null);
+            setLoadError(
+              response.status === 401
+                ? "Your session has expired. Please sign in again."
+                : `Could not load screenings (HTTP ${response.status}).`
+            );
           }
         } catch (err) {
           console.error("Error loading screenings:", err);
-          setScreenings(SEED_SCREENINGS);
-          setActiveId(SEED_SCREENINGS[0].id);
+          setScreenings([]);
+          setActiveId(null);
+          setLoadError("Could not reach the analysis service. Check that the backend is running.");
         }
       };
       fetchScreenings();
@@ -213,6 +130,7 @@ export default function Home() {
   const handleStartScreening = async (formData: FormData) => {
     setIsProcessing(true);
     setProcessingProgress(0);
+    setProcessingError(null);
     setProcessingLogs(["Connecting to talent matching engine..."]);
 
     const requiredSkillsString = formData.get("required_skills") as string;
@@ -231,7 +149,33 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error("Backend connection failed. Please ensure FastAPI is running.");
+        // Report what actually happened. A blanket "backend is down" message is
+        // wrong for every status the server successfully returned — a 422 from
+        // a missing field sent recruiters to check their server process.
+        let detail = '';
+        try {
+          const body = await response.json();
+          const d = body?.detail;
+          detail = Array.isArray(d)
+            ? d.map((e: { loc?: string[]; msg?: string }) =>
+                `${e.loc?.slice(-1)[0] ?? 'field'}: ${e.msg ?? 'invalid'}`).join('; ')
+            : (typeof d === 'string' ? d : '');
+        } catch {
+          /* non-JSON error body; fall through to the status-based message */
+        }
+
+        if (response.status === 401) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        if (response.status === 422) {
+          throw new Error(detail || "Some required fields are missing or invalid.");
+        }
+        if (response.status === 413) {
+          throw new Error("One or more resumes exceed the upload size limit.");
+        }
+        throw new Error(
+          detail || `Analysis failed (HTTP ${response.status}). Check that the backend is running.`
+        );
       }
 
       const reader = response.body?.getReader();
@@ -283,7 +227,9 @@ export default function Home() {
       }
     } catch (err: any) {
       console.error("Stream parse error:", err);
-      setProcessingLogs(prev => [...prev, `✗ Fatal: ${err.message || 'Stream parsing encountered a failure.'}`]);
+      const message = err?.message || 'Stream parsing encountered a failure.';
+      setProcessingLogs(prev => [...prev, `✗ Fatal: ${message}`]);
+      setProcessingError(`Analysis failed: ${message}`);
       setTimeout(() => {
         setIsProcessing(false);
       }, 3500);
@@ -301,9 +247,9 @@ export default function Home() {
 
           <div className="text-center" suppressHydrationWarning>
             <h1 className="text-xl font-bold tracking-wider text-white">
-              Hire<span className="text-blue-400">Grid</span><span className="text-slate-500">.io</span>
+              Hire<span className="text-blue-400">Grid</span><span className="text-content-muted">.io</span>
             </h1>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest leading-none mt-2.5 font-semibold">resolving session state...</p>
+            <p className="text-[10px] text-content-muted uppercase tracking-widest leading-none mt-2.5 font-semibold">resolving session state...</p>
           </div>
         </div>
       </div>
@@ -314,7 +260,7 @@ export default function Home() {
 
   // Compute Active Screening Statistics
   const totalCount = activeScreening?.candidates?.length || 0;
-  const shortlistCount = activeScreening?.candidates?.filter(c => c.score >= 80).length || 0;
+  const shortlistCount = countShortlisted(activeScreening?.candidates?.map(c => c.score) ?? []);
   const avgScore = totalCount > 0 
     ? (activeScreening?.candidates?.reduce((acc, curr) => acc + curr.score, 0) || 0) / totalCount 
     : 0;
@@ -358,7 +304,7 @@ export default function Home() {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md">Talent Dashboard</span>
-                <span className="text-xs text-slate-500">• {activeScreening?.date || "Analytics Active"}</span>
+                <span className="text-xs text-content-muted">• {activeScreening?.date || "Analytics Active"}</span>
               </div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight mt-1.5 truncate">
                 {activeScreening ? activeScreening.job_title : "No Screening Active"}
@@ -409,6 +355,18 @@ export default function Home() {
 
         {/* Dashboard Panels */}
         <section className="p-8 space-y-8 flex-1">
+          {loadError && (
+            <div
+              role="alert"
+              className="p-4 rounded-xl border border-red-900/60 bg-red-950/30 flex items-start gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-red-200">Could not load your screenings</h3>
+                <p className="text-xs text-red-300/80 mt-1">{loadError}</p>
+              </div>
+            </div>
+          )}
           {activeScreening ? (
             <>
               {/* Target Parameters Segment */}
@@ -426,7 +384,7 @@ export default function Home() {
                     </span>
                   ))}
                   {activeScreening.required_skills.length === 0 && (
-                    <span className="text-xs text-slate-500 italic">No specific skill filters added</span>
+                    <span className="text-xs text-content-muted italic">No specific skill filters added</span>
                   )}
                 </div>
               </div>
@@ -454,7 +412,7 @@ export default function Home() {
                   <div className="text-left min-w-0">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Average Fit Score</span>
                     <h3 className="text-2xl font-black text-white mt-1 leading-none">{avgScore.toFixed(1)}%</h3>
-                    <p className="text-[10px] text-slate-500 mt-1 truncate">Overall candidate relevance</p>
+                    <p className="text-[10px] text-content-muted mt-1 truncate">Overall candidate relevance</p>
                   </div>
                 </div>
 
@@ -479,7 +437,7 @@ export default function Home() {
                   <div className="text-left min-w-0">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Maximum Match Score</span>
                     <h3 className="text-2xl font-black text-white mt-1 leading-none">{maxScore.toFixed(0)}%</h3>
-                    <p className="text-[10px] text-slate-500 mt-1 truncate">Best fit prospective profile</p>
+                    <p className="text-[10px] text-content-muted mt-1 truncate">Best fit prospective profile</p>
                   </div>
                 </div>
 
@@ -506,7 +464,7 @@ export default function Home() {
                     <h3 className="text-2xl font-black text-white mt-1 leading-none text-left">
                       {totalCount > 0 ? ((shortlistCount / totalCount) * 100).toFixed(0) : 0}%
                     </h3>
-                    <p className="text-[10px] text-slate-500 mt-1 truncate">{shortlistCount} of {totalCount} short-listed</p>
+                    <p className="text-[10px] text-content-muted mt-1 truncate">{shortlistCount} of {totalCount} short-listed</p>
                   </div>
                 </div>
               </div>
@@ -547,11 +505,11 @@ export default function Home() {
             </>
           ) : (
             <div className="rounded-xl border border-slate-800 py-32 flex flex-col items-center justify-center text-center max-w-3xl mx-auto shadow-2xl bg-[#0d1326]">
-              <div className="w-14 h-14 rounded-xl bg-[#080c18] border border-slate-850 flex items-center justify-center text-slate-500 mb-4">
+              <div className="w-14 h-14 rounded-xl bg-[#080c18] border border-slate-850 flex items-center justify-center text-content-faint mb-4">
                 <Users className="w-7 h-7" />
               </div>
               <h2 className="text-lg font-bold text-white tracking-wide">Ready for Talent Search</h2>
-              <p className="text-sm text-slate-450 mt-1 max-w-md">
+              <p className="text-sm text-content-muted mt-1 max-w-md">
                 Launch a talent run to parse resume documents using advanced composite NLP rules.
               </p>
               <button
@@ -576,56 +534,89 @@ export default function Home() {
         {/* Streaming Analysis Process Screen */}
         {isProcessing && (
           <div className="fixed inset-0 bg-[#060913]/95 backdrop-blur-sm flex items-center justify-center z-55 p-4">
-            <div className="w-full max-w-2xl rounded-xl p-8 border border-slate-800 relative overflow-hidden flex flex-col gap-6 animate-slide-up shadow-2xl bg-[#0d1326]">
+            {/* No onEscape: an analysis run is in flight, and dismissing it with
+                a stray keypress would discard work already spent. */}
+            <div
+              ref={processingPanelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={processingTitleId}
+              className="w-full max-w-2xl rounded-xl p-8 border border-slate-800 relative overflow-hidden flex flex-col gap-6 animate-slide-up shadow-2xl bg-[#0d1326]"
+            >
               {/* Border accents */}
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500" />
-              
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500" aria-hidden="true" />
+
               <div className="flex items-center gap-4 text-left">
-                <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-450 border border-slate-800 shrink-0">
-                  <Terminal className="w-5 h-5 animate-pulse" />
+                <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-400 border border-slate-800 shrink-0">
+                  <Terminal className="w-5 h-5 animate-pulse" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white tracking-wide">HireGrid.io Engine Active</h3>
-                  <p className="text-xs text-slate-450 mt-0.5">Streaming pipeline logs and scoring candidate profiles.</p>
+                  <h3 id={processingTitleId} className="text-lg font-bold text-white tracking-wide">HireGrid.io Engine Active</h3>
+                  <p className="text-xs text-content-muted mt-0.5">Streaming pipeline logs and scoring candidate profiles.</p>
                 </div>
               </div>
 
-              {/* Progress visual bar */}
+              {/* Progress bar. A progressbar role rather than a live region:
+                  assistive tech polls the value on demand, whereas announcing
+                  every increment of a per-candidate stream is unusable. */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-350">
+                <div className="flex items-center justify-between text-xs font-semibold text-content-secondary">
                   <span>Match Progress</span>
                   <span>{processingProgress}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-[#080c18] border border-slate-800 overflow-hidden">
-                  <div 
+                <div
+                  role="progressbar"
+                  aria-label="Match progress"
+                  aria-valuenow={processingProgress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  className="w-full h-2 rounded-full bg-[#080c18] border border-slate-800 overflow-hidden"
+                >
+                  <div
                     className="h-full rounded-full bg-blue-500 transition-all duration-300"
                     style={{ width: `${processingProgress}%` }}
                   />
                 </div>
               </div>
 
-              {/* Log Feed Terminal */}
+              {/* Log Feed Terminal.
+                  The array is reversed before mapping, so the newest entry is
+                  the first DOM child while flex-col-reverse paints it at the
+                  bottom. Live regions announce in DOM order, so new lines are
+                  read as they arrive — keep the reverse() and the
+                  flex-col-reverse in sync if either changes. */}
               <div className="space-y-2 text-left">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pipeline Events</span>
-                <div className="h-44 rounded-xl bg-[#080c18] border border-slate-800 p-4.5 font-mono text-[11px] leading-relaxed text-slate-400 overflow-y-auto space-y-1.5 flex flex-col-reverse shadow-inner">
+                <span className="text-[10px] font-bold text-content-muted uppercase tracking-widest">Pipeline Events</span>
+                <div
+                  aria-live="polite"
+                  aria-atomic="false"
+                  aria-label="Pipeline events"
+                  className="h-44 rounded-xl bg-[#080c18] border border-slate-800 p-4.5 font-mono text-[11px] leading-relaxed text-slate-400 overflow-y-auto space-y-1.5 flex flex-col-reverse shadow-inner"
+                >
                   {processingLogs.slice().reverse().map((log, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className={`flex items-start gap-2 ${
-                        log.startsWith('✓') 
-                          ? 'text-emerald-450' 
-                          : log.startsWith('✗') 
-                          ? 'text-red-450 font-bold' 
-                          : log.includes('[') 
-                          ? 'text-blue-400' 
+                        log.startsWith('✓')
+                          ? 'text-emerald-400'
+                          : log.startsWith('✗')
+                          ? 'text-red-400 font-bold'
+                          : log.includes('[')
+                          ? 'text-blue-400'
                           : 'text-slate-400'
                       }`}
                     >
-                      <span className="text-slate-650 shrink-0">&gt;</span>
+                      <span className="text-content-faint shrink-0" aria-hidden="true">&gt;</span>
                       <span className="break-all">{log}</span>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Failures are announced assertively so they are not queued
+                  behind pending log lines. */}
+              <div role="alert" className="sr-only">
+                {processingError ?? ''}
               </div>
             </div>
           </div>

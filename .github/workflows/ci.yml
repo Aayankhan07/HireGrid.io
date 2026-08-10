@@ -27,14 +27,19 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -r backend/requirements.txt
 
-      - name: Download spaCy Model
-        run: |
-          python -m spacy download en_core_web_sm
+      # The en_core_web_sm download was removed: extraction is entirely
+      # rule-based and the model was never loaded on the request path.
 
       - name: Run Pytest Test Suite
         run: |
           cd backend
           python -m pytest tests/
+
+      - name: Scoring Regression Benchmark
+        # Gates on ranking quality (NDCG@3), so a change that reorders
+        # candidates incorrectly fails the build.
+        run: |
+          python accuracy_checker/evaluator.py --min-ndcg 0.9
 
   frontend-build:
     name: Frontend Build & Typecheck
@@ -55,6 +60,34 @@ jobs:
         run: |
           cd frontend
           npm ci
+
+      - name: Typecheck
+        run: |
+          cd frontend
+          npx tsc --noEmit
+
+      - name: Dead Tailwind Class Check
+        # Classes with shades outside Tailwind's palette emit no CSS and fail
+        # silently -- the build succeeds and the element renders unstyled.
+        run: |
+          cd frontend
+          npm run lint:classes
+
+      - name: Design Token Contrast Check
+        # Verifies every content/status token clears WCAG AA against every
+        # surface token.
+        run: |
+          cd frontend
+          npm run lint:contrast
+
+      - name: Accessibility Lint
+        # Gates on jsx-a11y rules only. The repo still carries unrelated
+        # pre-existing lint errors (no-explicit-any and friends); failing this
+        # step on those would make the a11y signal unreadable. Remove the
+        # filter once the full `npm run lint` is clean.
+        run: |
+          cd frontend
+          npm run lint:a11y
 
       - name: Build Next.js Application
         run: |

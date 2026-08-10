@@ -12,8 +12,11 @@ RUN npm install
 # Copy source
 COPY frontend/ ./
 
-# Bake public env vars into the Next.js bundle at build time
-ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=577325640295-b1naue9m911p78fg3dr5te6ur463gn2g.apps.googleusercontent.com
+# Public env vars are baked into the Next.js bundle at build time, so the client
+# ID has to be supplied as a build argument rather than at runtime:
+#   docker build --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=<id> .
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=""
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 RUN npm run build
 # Standalone output lives in /app/frontend/.next/standalone
@@ -24,15 +27,11 @@ RUN npm run build
 # ─────────────────────────────────────────────────────────────────────────────
 FROM python:3.11-slim
 
-# System deps: spacy, pdfplumber, pytesseract, Node.js runtime, nginx, supervisor
+# System deps: build toolchain, Node.js runtime, nginx, supervisor.
+# tesseract-ocr and the OpenCV image libraries were removed with the unused
+# pytesseract/Pillow dependencies — nothing in the pipeline does OCR.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    tesseract-ocr \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libgl1 \
     nginx \
     supervisor \
     curl \
@@ -48,11 +47,14 @@ RUN pip install --no-cache-dir \
     torch --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -r requirements.txt
 
-# ── Pre-download ML models at BUILD time so startup is instant ────────────────
-# spaCy English model
-RUN python -m spacy download en_core_web_sm
-# sentence-transformers model used in core/similarity.py
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2'); print('Model cached.')"
+# ── Pre-download the embedding model at BUILD time so startup is instant ──────
+# Must match EMBEDDING_MODEL at runtime, or the container downloads a different
+# model on first request. Override both together:
+#   docker build --build-arg EMBEDDING_MODEL=BAAI/bge-small-en-v1.5 .
+ARG EMBEDDING_MODEL=all-MiniLM-L6-v2
+ENV EMBEDDING_MODEL=$EMBEDDING_MODEL
+RUN python -c "import os; from sentence_transformers import SentenceTransformer; \
+    SentenceTransformer(os.environ['EMBEDDING_MODEL']); print('Model cached:', os.environ['EMBEDDING_MODEL'])"
 
 # ── Backend source ────────────────────────────────────────────────────────────
 COPY backend/ ./backend/

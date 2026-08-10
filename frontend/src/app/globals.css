@@ -1,6 +1,46 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* ── Surfaces ──────────────────────────────────────────────────────────────
+     Named replacements for the hex values that were hardcoded across
+     components (bg-[#060913] etc.). */
+  --color-surface-base:    #060913;  /* page background */
+  --color-surface-raised:  #0d1326;  /* card */
+  --color-surface-sunken:  #080c18;  /* inset / well */
+  --color-surface-hover:   #111830;  /* card hover */
+  --color-surface-panel:   #0a0f1d;  /* .glass-panel */
+
+  /* ── Borders ──────────────────────────────────────────────────────────── */
+  --color-line-subtle:  #1e2438;
+  --color-line-default: #26304a;
+
+  /* ── Content ramp ──────────────────────────────────────────────────────────
+     Contrast ratios measured against --color-surface-raised (#0d1326).
+     WCAG 2.1 AA requires 4.5:1 for normal text, 3:1 for large text and
+     non-text elements.
+
+     `content-muted` exists because the gap between slate-400 and slate-500 is
+     where "secondary text on a dark card" actually lives. Without a name for
+     it, callers reached for a nonexistent `slate-450`, which emitted no CSS
+     at all. It is tuned light enough to clear 4.5:1. */
+  --color-content-primary:   #f8fafc;  /* 17.0:1  headings */
+  --color-content-secondary: #cbd5e1;  /* 12.4:1  body copy */
+  --color-content-tertiary:  #94a3b8;  /*  7.2:1  labels, icon rest states */
+  --color-content-muted:     #7c8ba1;  /*  5.1:1  metadata — lowest passing text */
+  --color-content-faint:     #64748b;  /*  3.9:1  NON-TEXT ONLY: icons, rules */
+
+  /* ── Status ───────────────────────────────────────────────────────────────
+     All AA-passing on surface-raised. Amber (not blue) carries the mid-tier
+     score: blue is the brand/interactive colour and reads as a link, not as
+     caution. */
+  --color-status-positive: #34d399;  /*  9.6:1 */
+  --color-status-warning:  #fbbf24;  /* 10.9:1 */
+  --color-status-danger:   #f87171;  /*  6.7:1 */
+  --color-status-info:     #60a5fa;  /*  7.3:1 */
+
+  --color-focus-ring: #60a5fa;
+
+  /* ── Brand ────────────────────────────────────────────────────────────── */
   --color-brand-blue: #3b82f6;
   --color-brand-indigo: #6366f1;
   --color-brand-emerald: #10b981;
@@ -26,6 +66,31 @@ body {
   overflow-x: hidden;
   scroll-behavior: smooth;
   letter-spacing: -0.011em;
+}
+
+/* Global keyboard focus indicator.
+   Every interactive element relies on this; nothing should set
+   `outline: none` without providing an equally visible replacement.
+   :focus-visible keeps the ring off mouse clicks while guaranteeing it for
+   keyboard navigation. */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Honour a reduced-motion preference without removing state changes:
+   transitions collapse to near-instant rather than being cancelled, so
+   hover/focus feedback and progress updates remain perceivable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -65,11 +130,13 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.2s ease;
 }
 
-.glass-input:focus {
+.glass-input:focus-visible {
   outline: none;
   border-color: var(--accent-blue);
   background: #0a0f20;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  /* WCAG 1.4.11 requires 3:1 for focus indicators. The previous 0.2 alpha
+     rendered at roughly 1.3:1 against the surrounding surface. */
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.7);
 }
 
 /* Premium Solid & Flat Button Styles (Stripe/Linear-like) */

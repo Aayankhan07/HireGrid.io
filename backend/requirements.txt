@@ -1,14 +1,27 @@
 fastapi
 uvicorn[standard]
 python-multipart
-sentence-transformers
-spacy
-torch
-pdfplumber
-pytesseract
-Pillow
 python-dotenv
+
+# Semantic matching. Pulls torch; install the CPU wheel first to avoid the
+# multi-gigabyte CUDA build:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+sentence-transformers
+torch
+
+# Resume text extraction.
+pdfplumber
+
+# PostgreSQL driver. Only imported when DATABASE_URL points at Postgres, but
+# kept here so a deployment can switch without a rebuild.
 psycopg2-binary
+
+# Testing. httpx has no direct import — starlette's TestClient requires it.
 pytest
 httpx
 
+# Removed and deliberately not restored:
+#   spacy        — extraction is entirely rule-based; the model was loaded at
+#                  import and never called. See core/nlp_layer.py.
+#   pytesseract  — OCR was never wired up.
+#   Pillow       — only present as a pytesseract dependency.

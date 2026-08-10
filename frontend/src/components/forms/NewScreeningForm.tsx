@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useId } from 'react';
 import { X, Upload, Plus, FileText, Trash2, Sliders, Briefcase, GraduationCap, MapPin, Globe, CheckSquare, Sparkles } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface AIJobPreset {
   title: string;
@@ -15,7 +16,8 @@ interface AIJobPreset {
 const AI_ROLE_PRESETS: AIJobPreset[] = [
   {
     title: "Senior Full Stack Engineer",
-    skills: "React, TypeScript, Node.js, Next.js, PostgreSQL",
+    // '!' marks a must-have, '?' a nice-to-have. See core/skill_weights.py.
+    skills: "React!, TypeScript!, Node.js, Next.js?, PostgreSQL",
     yoe: 5,
     education: "Bachelor",
     location: "Remote",
@@ -23,7 +25,7 @@ const AI_ROLE_PRESETS: AIJobPreset[] = [
   },
   {
     title: "AI/ML Research Scientist",
-    skills: "Python, PyTorch, Deep Learning, NLP, Transformers",
+    skills: "Python!, PyTorch!, Deep Learning, NLP, Transformers?",
     yoe: 4,
     education: "Master",
     location: "San Francisco",
@@ -31,7 +33,7 @@ const AI_ROLE_PRESETS: AIJobPreset[] = [
   },
   {
     title: "Lead Product Manager",
-    skills: "Roadmap, Agile, Scrum, Jira, PRD",
+    skills: "Roadmap!, Agile, Scrum, Jira?, PRD",
     yoe: 6,
     education: "Bachelor",
     location: "New York",
@@ -39,7 +41,7 @@ const AI_ROLE_PRESETS: AIJobPreset[] = [
   },
   {
     title: "Technical SEO Director",
-    skills: "SEO, Technical Audit, Schema, Crawl Budget, Content Briefs",
+    skills: "SEO!, Technical Audit!, Schema, Crawl Budget, Content Briefs?",
     yoe: 7,
     education: "Bachelor",
     location: "Remote",
@@ -70,6 +72,27 @@ export default function NewScreeningForm({
   const [topNCandidates, setTopNCandidates] = useState(10);
   const [files, setFiles] = useState<File[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
+
+  // Generated ids so <label htmlFor> can bind to each control. useId keeps the
+  // component safe to render more than once on a page.
+  const jobTitleId = useId();
+  const skillsId = useId();
+  const experienceId = useId();
+  const educationId = useId();
+  const locationId = useId();
+  const languagesId = useId();
+  const certificationsId = useId();
+  const descriptionId = useId();
+  const topNId = useId();
+  const fileInputId = useId();
+  const dropzoneHintId = useId();
+  const skillsHintId = useId();
+  const titleId = useId();
+
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // This form is only rendered while open, so the trap is always active.
+  useFocusTrap(panelRef, true, onClose);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -145,7 +168,13 @@ export default function NewScreeningForm({
 
   return (
     <div className="fixed inset-0 bg-[#060913]/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="w-full max-w-4xl rounded-xl relative overflow-hidden animate-slide-up my-8 border border-slate-800 bg-[#0d1326] shadow-2xl">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="w-full max-w-4xl rounded-xl relative overflow-hidden animate-slide-up my-8 border border-slate-800 bg-[#0d1326] shadow-2xl"
+      >
         
         {/* Border Accent Line */}
         <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500" />
@@ -153,19 +182,21 @@ export default function NewScreeningForm({
         {/* Form Header */}
         <div className="p-6 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3 text-left">
-            <div className="w-9 h-9 rounded-md bg-slate-900 flex items-center justify-center border border-slate-800 text-blue-450">
+            <div className="w-9 h-9 rounded-md bg-slate-900 flex items-center justify-center border border-slate-800 text-blue-400">
               <Sliders className="w-4.5 h-4.5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">New Candidate Screening</h2>
-              <p className="text-xs text-slate-450 mt-1">Configure matching parameters and upload target resumes.</p>
+              <h2 id={titleId} className="text-xl font-bold text-white">New Candidate Screening</h2>
+              <p className="text-xs text-content-muted mt-1">Configure matching parameters and upload target resumes.</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close screening form"
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -197,12 +228,13 @@ export default function NewScreeningForm({
             {/* Left side parameters */}
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Job Designation / Title</label>
+                <label htmlFor={jobTitleId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Job Designation / Title</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-content-muted">
                     <Briefcase className="w-4 h-4" />
                   </span>
                   <input
+                    id={jobTitleId}
                     type="text"
                     required
                     value={jobTitle}
@@ -214,26 +246,35 @@ export default function NewScreeningForm({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Required Core Skills (Comma-separated)</label>
+                <label htmlFor={skillsId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Required Core Skills (Comma-separated)</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-content-muted">
                     <CheckSquare className="w-4 h-4" />
                   </span>
                   <input
+                    id={skillsId}
                     type="text"
                     required
                     value={requiredSkills}
                     onChange={(e) => setRequiredSkills(e.target.value)}
-                    placeholder="React, TypeScript, Next.js, TailwindCSS"
+                    aria-describedby={skillsHintId}
+                    placeholder="React!, TypeScript, Next.js, TailwindCSS?"
                     className="glass-input w-full py-2.5 pl-10 pr-4 text-sm"
                   />
                 </div>
+                <p id={skillsHintId} className="text-[11px] text-content-muted mt-1.5">
+                  Add <span className="font-mono text-slate-300">!</span> for must-have
+                  (counts double, and its absence caps the skills score) or{' '}
+                  <span className="font-mono text-slate-300">?</span> for nice-to-have
+                  (counts half). Unmarked skills carry normal weight.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Min Experience (Years)</label>
+                  <label htmlFor={experienceId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Min Experience (Years)</label>
                   <input
+                    id={experienceId}
                     type="number"
                     required
                     min="0"
@@ -244,12 +285,13 @@ export default function NewScreeningForm({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Education Minimum</label>
+                  <label htmlFor={educationId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Education Minimum</label>
                   <div className="relative">
                     <select
+                      id={educationId}
                       value={requiredEducation}
                       onChange={(e) => setRequiredEducation(e.target.value)}
-                      className="glass-input w-full py-2.5 px-4 text-sm appearance-none cursor-pointer bg-[#080c18] border border-slate-800 text-slate-350"
+                      className="glass-input w-full py-2.5 px-4 text-sm appearance-none cursor-pointer bg-[#080c18] border border-slate-800 text-content-secondary"
                     >
                       <option value="Any">Any Education</option>
                       <option value="Bachelor">Bachelor Degree</option>
@@ -262,12 +304,13 @@ export default function NewScreeningForm({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Preferred Location</label>
+                  <label htmlFor={locationId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Preferred Location</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-content-muted">
                       <MapPin className="w-4 h-4" />
                     </span>
                     <input
+                      id={locationId}
                       type="text"
                       value={preferredLocation}
                       onChange={(e) => setPreferredLocation(e.target.value)}
@@ -277,12 +320,13 @@ export default function NewScreeningForm({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Languages Spoken</label>
+                  <label htmlFor={languagesId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Languages Spoken</label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-content-muted">
                       <Globe className="w-4 h-4" />
                     </span>
                     <input
+                      id={languagesId}
                       type="text"
                       value={preferredLanguages}
                       onChange={(e) => setPreferredLanguages(e.target.value)}
@@ -294,8 +338,9 @@ export default function NewScreeningForm({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Required Certifications (Optional)</label>
+                <label htmlFor={certificationsId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Required Certifications (Optional)</label>
                 <input
+                  id={certificationsId}
                   type="text"
                   value={requiredCertifications}
                   onChange={(e) => setRequiredCertifications(e.target.value)}
@@ -305,8 +350,9 @@ export default function NewScreeningForm({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Job Description & Core Context</label>
+                <label htmlFor={descriptionId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Job Description & Core Context</label>
                 <textarea
+                  id={descriptionId}
                   required
                   rows={4}
                   value={jobDescription}
@@ -319,57 +365,71 @@ export default function NewScreeningForm({
 
             {/* Right side file upload drag boxes */}
             <div className="flex flex-col h-full space-y-4">
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">Candidate Resumes (PDF format)</label>
+              <label htmlFor={fileInputId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">Candidate Resumes (PDF format)</label>
               
               {/* Drag/Drop Box */}
-              <div
+              {/* A button, not a div: the dropzone is the only way to reach the
+                  file picker, so it has to be focusable and Enter/Space-operable.
+                  Drag handlers stay on the same element. */}
+              <button
+                type="button"
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
                 onDragLeave={handleDrag}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`flex-1 min-h-[160px] border border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all duration-250 cursor-pointer ${
-                  isDragActive 
-                    ? 'border-blue-500 bg-blue-600/10' 
+                aria-describedby={dropzoneHintId}
+                className={`w-full flex-1 min-h-[160px] border border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all duration-250 cursor-pointer ${
+                  isDragActive
+                    ? 'border-blue-500 bg-blue-600/10'
                     : files.length > 0
                     ? 'border-blue-500/50 bg-[#080c18] hover:bg-[#0c142c]'
                     : 'border-slate-800 hover:border-slate-700 bg-[#080c18] hover:bg-[#0c142c]'
                 }`}
               >
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <div className={`w-12 h-12 rounded-lg bg-[#060913] flex items-center justify-center mb-3 border border-slate-850 ${
-                  files.length > 0 ? 'text-blue-400 border-blue-500/20' : 'text-slate-450'
+                <span className={`w-12 h-12 rounded-lg bg-[#060913] flex items-center justify-center mb-3 border border-slate-850 ${
+                  files.length > 0 ? 'text-blue-400 border-blue-500/20' : 'text-content-muted'
                 }`}>
                   <Upload className={`w-5 h-5 transition-transform duration-200 ${
                     isDragActive ? 'translate-y-[-4px]' : files.length > 0 ? 'scale-110' : ''
-                  }`} />
-                </div>
+                  }`} aria-hidden="true" />
+                </span>
                 {files.length > 0 ? (
                   <>
-                    <p className="text-sm font-semibold text-blue-400">
+                    <span className="block text-sm font-semibold text-blue-400">
                       {files.length} Resume{files.length > 1 ? 's' : ''} Staged
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">Click or drag more files to add</p>
+                    </span>
+                    <span id={dropzoneHintId} className="block text-xs text-content-muted mt-1">
+                      Click or drag more files to add
+                    </span>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-semibold text-white">Click or drag PDF resumes here</p>
-                    <p className="text-xs text-slate-500 mt-1">Upload multiple resume PDFs to rank simultaneously</p>
+                    <span className="block text-sm font-semibold text-white">Click or drag PDF resumes here</span>
+                    <span id={dropzoneHintId} className="block text-xs text-content-muted mt-1">
+                      Upload multiple resume PDFs to rank simultaneously
+                    </span>
                   </>
                 )}
-              </div>
+              </button>
+
+              {/* Outside the button: a file input nested inside another control
+                  is invalid and would be unreachable. sr-only rather than
+                  hidden keeps it in the accessibility tree. */}
+              <input
+                id={fileInputId}
+                type="file"
+                multiple
+                accept=".pdf"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                className="sr-only"
+              />
 
               {/* Uploaded File List */}
               <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1">
                 {files.length === 0 ? (
-                  <p className="text-center text-xs text-slate-600 py-6 italic border border-slate-800 rounded-lg bg-[#080c18]/40">
+                  <p className="text-center text-xs text-content-muted py-6 italic border border-slate-800 rounded-lg bg-[#080c18]/40">
                     No resumes selected.
                   </p>
                 ) : (
@@ -379,23 +439,24 @@ export default function NewScreeningForm({
                       className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-[#080c18]/80"
                     >
                       <div className="flex items-center gap-3 min-w-0 text-left">
-                        <div className="w-8 h-8 rounded bg-slate-900 border border-slate-850 flex items-center justify-center text-blue-450 shrink-0">
+                        <div className="w-8 h-8 rounded bg-slate-900 border border-slate-850 flex items-center justify-center text-blue-400 shrink-0">
                           <FileText className="w-4.5 h-4.5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-slate-350 truncate">{file.name}</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{(file.size / 1024).toFixed(0)} KB</p>
+                          <p className="text-xs font-medium text-content-secondary truncate">{file.name}</p>
+                          <p className="text-[10px] text-content-muted mt-0.5">{(file.size / 1024).toFixed(0)} KB</p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                           removeFile(idx);
+                          removeFile(idx);
                         }}
-                        className="p-1 rounded-md text-slate-500 hover:text-red-450 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        aria-label={`Remove ${file.name}`}
+                        className="p-1 rounded-md text-content-muted hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     </div>
                   ))
@@ -403,8 +464,9 @@ export default function NewScreeningForm({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Max Ranked Output</label>
+                <label htmlFor={topNId} className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Max Ranked Output</label>
                 <input
+                  id={topNId}
                   type="number"
                   min="1"
                   max="50"

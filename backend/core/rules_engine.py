@@ -1,3 +1,10 @@
+from core.skill_aliases import canonicalize_skill, canonicalize_skills
+from core.skill_weights import (
+    MISSING_MUST_HAVE_CAP,
+    format_weight_label,
+    missing_must_haves,
+)
+
 EDUCATION_LEVELS = {
     "Unknown": 0, "High School": 1, "Bachelor": 2, "Master": 3, "PhD": 4
 }
@@ -58,15 +65,44 @@ def calculate_language_score(preferred_languages: list, candidate_languages: lis
     return round((matched / len(preferred_languages)) * 100.0, 2)
 
 def calculate_skills_score(required_skills: list, candidate_skills: list) -> float:
-    """Exact-match skills score."""
+    """Exact-match skills score, compared on canonical skill names."""
     if not required_skills:
         return 100.0
     if not candidate_skills:
         return 0.0
-    req_lower = set(s.lower() for s in required_skills)
-    cand_lower = set(s.lower() for s in candidate_skills)
-    matched = len(req_lower & cand_lower)
-    return round((matched / len(req_lower)) * 100.0, 2)
+    req_canonical = canonicalize_skills(required_skills)
+    cand_canonical = canonicalize_skills(candidate_skills)
+    matched = len(req_canonical & cand_canonical)
+    return round((matched / len(req_canonical)) * 100.0, 2)
+
+def calculate_weighted_skills_score(required_skills: list, candidate_skills: list,
+                                    skill_weights: dict = None) -> float:
+    """
+    Exact-match skills score with per-skill importance.
+
+    An unweighted average treats a role's core language and a peripheral tool
+    identically. Weighting lets a job description say which requirements
+    actually decide the hire.
+    """
+    if not required_skills:
+        return 100.0
+    if not candidate_skills:
+        return 0.0
+
+    cand_canonical = canonicalize_skills(candidate_skills)
+
+    total_weight = 0.0
+    matched_weight = 0.0
+    for skill in required_skills:
+        weight = float((skill_weights or {}).get(skill, 1.0))
+        total_weight += weight
+        if canonicalize_skill(skill) in cand_canonical:
+            matched_weight += weight
+
+    if total_weight <= 0:
+        return 0.0
+    return round((matched_weight / total_weight) * 100.0, 2)
+
 
 def calculate_density_weighted_skills_score(required_skills: list, skills_density: dict) -> float:
     """
@@ -80,11 +116,17 @@ def calculate_density_weighted_skills_score(required_skills: list, skills_densit
     if not skills_density:
         return 0.0
 
-    density_lower = {k.lower(): v for k, v in skills_density.items()}
+    # Fold counts onto canonical names so "React" and "ReactJS" mentions add up
+    # instead of being tracked as two unrelated skills.
+    density_canonical = {}
+    for k, v in skills_density.items():
+        key = canonicalize_skill(k)
+        density_canonical[key] = density_canonical.get(key, 0) + v
+
     total_weight = 0.0
 
     for skill in required_skills:
-        count = density_lower.get(skill.lower(), 0)
+        count = density_canonical.get(canonicalize_skill(skill), 0)
         if count == 0:
             multiplier = 0.0
         elif count == 1:
@@ -110,10 +152,17 @@ def calculate_projects_score(candidate_projects: list) -> float:
 # ──────────────────────────────────────────────
 
 def get_matched_missing_skills(required_skills: list, candidate_skills: list):
-    req_lower = {s.lower(): s for s in required_skills}
-    cand_lower = set(s.lower() for s in candidate_skills)
-    matched = [req_lower[r] for r in req_lower if r in cand_lower]
-    missing = [req_lower[r] for r in req_lower if r not in cand_lower]
+    """
+    Split required skills into matched/missing using canonical names, so that
+    "ReactJS" on a resume satisfies a "React" requirement.
+    """
+    cand_canonical = canonicalize_skills(candidate_skills)
+    matched, missing = [], []
+    for req in required_skills:
+        if canonicalize_skill(req) in cand_canonical:
+            matched.append(req)
+        else:
+            missing.append(req)
     return matched, missing
 
 def check_seniority_deficit(job_title: str, past_titles: list) -> bool:
@@ -158,7 +207,13 @@ def check_seniority_deficit(job_title: str, past_titles: list) -> bool:
 def generate_summary(candidate_id: str, matched_skills: list, missing_skills: list,
                      exp_score: float, semantic_score: float, final_score: float) -> str:
     strength = "strong" if final_score >= 80 else "moderate" if final_score >= 60 else "limited"
-    skill_note = f"Matches {len(matched_skills)} required skill(s)." if matched_skills else "No direct skill matches found."
+    if matched_skills:
+        # Name the matched skills; a bare count gives a recruiter nothing to act on.
+        shown = ", ".join(matched_skills[:5])
+        overflow = f" (+{len(matched_skills) - 5} more)" if len(matched_skills) > 5 else ""
+        skill_note = f"Matches {len(matched_skills)} required skill(s): {shown}{overflow}."
+    else:
+        skill_note = "No direct skill matches found."
     gap_note = f"Gaps: {', '.join(missing_skills[:3])}." if missing_skills else "No critical skill gaps detected."
     exp_note = "Experience fully meets requirements." if exp_score >= 100 else f"Experience score: {exp_score:.0f}%."
     sem_note = f"Semantic alignment with job description: {semantic_score:.0f}%."
@@ -186,20 +241,36 @@ def compute_final_score(extracted_data: dict, job_reqs: dict, semantic_score: fl
     req_skills     = job_reqs.get("required_skills", [])
     cand_skills    = extracted_data.get("skills", [])
     skills_density = extracted_data.get("skills_density", {})
+    skill_weights  = job_reqs.get("skill_weights", {}) or {}
 
     # ── 1. Skill sub-scores ──────────────────────
-    exact_score   = calculate_skills_score(req_skills, cand_skills)
+    # Weighted when the job description marks importance ("Python!", "Jira?"),
+    # otherwise identical to the unweighted behaviour.
+    exact_score   = calculate_weighted_skills_score(req_skills, cand_skills, skill_weights)
     density_score = calculate_density_weighted_skills_score(req_skills, skills_density)
     sem_skill_score = skill_similarity_score
 
     # Blend: 40% exact | 30% density | 30% semantic-skills
     blended_skill_score = (exact_score * 0.40) + (density_score * 0.30) + (sem_skill_score * 0.30)
 
+    # A missing must-have caps the skills sub-score. A weighted average alone
+    # cannot express "this one is disqualifying": with several other strong
+    # matches, a candidate lacking the single non-negotiable skill would still
+    # score comfortably.
+    matched_for_cap, _ = get_matched_missing_skills(req_skills, cand_skills)
+    unmet_must_haves = missing_must_haves(skill_weights, matched_for_cap)
+    if unmet_must_haves:
+        blended_skill_score = min(blended_skill_score, MISSING_MUST_HAVE_CAP)
+
     # ── 2. Core tech score (out of 60 possible points) ──
     tech_score = (blended_skill_score * weights["skills"]) + (semantic_score * weights["semantic"])
 
     # ── 3. Soft Veto ─────────────────────────────
-    if tech_score >= 30.0:
+    # Secondary attributes (education, location, certs) should not carry a
+    # candidate who fails on the core technical match, so when tech_score is
+    # weak they are scaled down rather than counted at face value.
+    soft_veto_applied = tech_score < 30.0
+    if not soft_veto_applied:
         tech_ratio = 1.0
     else:
         tech_ratio = max(0.4, tech_score / 30.0)
@@ -252,10 +323,17 @@ def compute_final_score(extracted_data: dict, job_reqs: dict, semantic_score: fl
         final_score = final_score * 0.75
         seniority_explanation = "Applied 25% reduction: Candidate is applying for a senior/lead role but their history only contains junior/intern titles."
         
-    # Experience Deficit sliding piecewise penalty
+    # Experience Deficit sliding piecewise penalty.
+    #
+    # Deliberate double-count: `exp_score` already scales the 15% experience
+    # weight, and this subtracts additional points on top. Experience is the
+    # single strongest signal in senior hiring, and the weighted term alone moves
+    # the total by at most 15 points, which does not separate a 1-year applicant
+    # from a 6-year one for a 7-year role. The penalty is capped at 25 points so
+    # the combined effect stays bounded.
     exp_penalty = 0.0
     exp_explanation = "Experience fully meets or exceeds requirements."
-    
+
     if cand_exp_years < req_exp_years:
         exp_deficit = req_exp_years - cand_exp_years
         # Piecewise curve
@@ -281,6 +359,18 @@ def compute_final_score(extracted_data: dict, job_reqs: dict, semantic_score: fl
         edu_explanation = f"Education deficit: Candidate has {candidate_education}, but role requires {required_education}. Applied soft-veto scaling."
         
     skills_explanation = f"Blended skills match: {blended_skill_score:.1f}% (Composed of 40% keyword intersection, 30% frequency density, and 30% dense-context semantic skill similarity)."
+    if skill_weights and any(w != 1.0 for w in skill_weights.values()):
+        graded = ", ".join(
+            f"{name} ({format_weight_label(w)})"
+            for name, w in skill_weights.items()
+            if w != 1.0
+        )
+        skills_explanation += f" Importance weighting applied: {graded}."
+    if unmet_must_haves:
+        skills_explanation += (
+            f" Capped at {MISSING_MUST_HAVE_CAP:.0f}%: missing must-have skill(s) "
+            f"{', '.join(unmet_must_haves)}."
+        )
     semantic_explanation = f"Semantic alignment with JD: {semantic_score:.1f}%. Represents overall conceptual match."
     
     loc_explanation = "Location check passed."
@@ -305,6 +395,10 @@ def compute_final_score(extracted_data: dict, job_reqs: dict, semantic_score: fl
 
     return {
         "final_score": round(final_score, 2),
+        "soft_veto_applied": soft_veto_applied,
+        "seniority_deficit_applied": seniority_deficit,
+        "experience_penalty": round(exp_penalty, 2),
+        "missing_must_haves": unmet_must_haves,
         "breakdown": {
             "skills":              round(blended_skill_score, 2),
             "semantic_similarity": round(semantic_score, 2),

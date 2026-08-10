@@ -4,6 +4,7 @@ import React from 'react';
 import { ShieldAlert, Award, Star, BookOpen, AlertCircle } from 'lucide-react';
 
 import { Candidate } from '@/types';
+import { getScoreTier } from '@/lib/score';
 
 interface DeepAnalysisProps {
   candidates: Candidate[];
@@ -18,9 +19,9 @@ export default function DeepAnalysis({
   if (candidates.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-800 flex flex-col items-center justify-center py-20 text-center bg-[#0d1326]">
-        <AlertCircle className="w-12 h-12 text-slate-500 mb-3" />
+        <AlertCircle className="w-12 h-12 text-content-faint mb-3" />
         <p className="text-slate-400 font-semibold text-sm">No analysis metrics available</p>
-        <p className="text-slate-500 text-xs mt-1">Please process a set of resumes to display deep analytical insights.</p>
+        <p className="text-content-muted text-xs mt-1">Please process a set of resumes to display deep analytical insights.</p>
       </div>
     );
   }
@@ -31,10 +32,11 @@ export default function DeepAnalysis({
   const avgScore = scores.reduce((a, b) => a + b, 0) / totalCount;
   const maxScore = Math.max(...scores);
   
-  // Status distributions
-  const shortlistCount = candidates.filter(c => c.score >= 80).length;
-  const reviewCount = candidates.filter(c => c.score >= 60 && c.score < 80).length;
-  const pendingCount = candidates.filter(c => c.score < 60).length;
+  // Status distributions. Tiers come from lib/score so the thresholds cannot
+  // drift away from the badge colours that visualise them.
+  const shortlistCount = candidates.filter(c => getScoreTier(c.score) === 'strong').length;
+  const reviewCount = candidates.filter(c => getScoreTier(c.score) === 'moderate').length;
+  const pendingCount = candidates.filter(c => getScoreTier(c.score) === 'weak').length;
 
   // Skill match counts
   const skillFrequency: Record<string, number> = {};
@@ -85,37 +87,37 @@ export default function DeepAnalysis({
         
         {/* KPI: Average Fit */}
         <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
-          <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-450 border border-slate-800 shrink-0">
+          <div className="w-12 h-12 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-400 border border-slate-800 shrink-0">
             <Award className="w-5 h-5" />
           </div>
           <div className="text-left">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Average Fit Score</span>
             <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{avgScore.toFixed(1)}%</h3>
-            <p className="text-[10px] text-slate-500 mt-1">Across all screened resumes</p>
+            <p className="text-[10px] text-content-muted mt-1">Across all screened resumes</p>
           </div>
         </div>
 
         {/* KPI: Top Matching */}
         <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
-          <div className="w-12 h-12 rounded-lg bg-emerald-500/5 flex items-center justify-center text-emerald-455 border border-slate-800 shrink-0">
+          <div className="w-12 h-12 rounded-lg bg-emerald-500/5 flex items-center justify-center text-emerald-400 border border-slate-800 shrink-0">
             <Star className="w-5 h-5" />
           </div>
           <div className="text-left">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Maximum Match Score</span>
             <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{maxScore.toFixed(0)}%</h3>
-            <p className="text-[10px] text-slate-500 mt-1">Best prospective match fit</p>
+            <p className="text-[10px] text-content-muted mt-1">Best prospective match fit</p>
           </div>
         </div>
 
         {/* KPI: Pipeline funnel */}
         <div className="p-6 rounded-xl border border-slate-800 flex items-center gap-4 bg-[#0d1326] shadow-sm">
-          <div className="w-12 h-12 rounded-lg bg-indigo-500/5 flex items-center justify-center text-indigo-455 border border-slate-800 shrink-0">
+          <div className="w-12 h-12 rounded-lg bg-indigo-500/5 flex items-center justify-center text-indigo-400 border border-slate-800 shrink-0">
             <BookOpen className="w-5 h-5" />
           </div>
           <div className="text-left">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Shortlist Yield</span>
             <h3 className="text-2xl font-bold text-white mt-1.5 -tracking-tight">{((shortlistCount / totalCount) * 100).toFixed(0)}%</h3>
-            <p className="text-[10px] text-slate-500 mt-1">{shortlistCount} shortlisted candidates</p>
+            <p className="text-[10px] text-content-muted mt-1">{shortlistCount} shortlisted candidates</p>
           </div>
         </div>
       </div>
@@ -127,7 +129,7 @@ export default function DeepAnalysis({
         <div className="p-6 rounded-xl border border-slate-800 bg-[#0d1326] space-y-4 shadow-lg">
           <div className="text-left">
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Required Skills Matching Rate</h4>
-            <p className="text-xs text-slate-500 mt-1">Appearance rate of required skills across scanned profiles.</p>
+            <p className="text-xs text-content-muted mt-1">Appearance rate of required skills across scanned profiles.</p>
           </div>
 
           <div className="space-y-4 pt-3">
@@ -142,7 +144,7 @@ export default function DeepAnalysis({
                       className="h-full bg-blue-600/80 rounded-r border-r border-blue-400/30 transition-all duration-500"
                       style={{ width: `${sm.percentage}%` }}
                     />
-                    <span className="absolute right-3 text-[10px] font-bold font-mono text-slate-350">
+                    <span className="absolute right-3 text-[10px] font-bold font-mono text-content-secondary">
                       {sm.count} / {totalCount} ({sm.percentage.toFixed(0)}%)
                     </span>
                   </div>
@@ -151,7 +153,7 @@ export default function DeepAnalysis({
             ))}
             
             {/* Grid axis lines at the bottom */}
-            <div className="flex pl-27 justify-between text-[9px] font-mono text-slate-550 pt-2.5 border-t border-slate-850/60">
+            <div className="flex pl-27 justify-between text-[9px] font-mono text-content-tertiary pt-2.5 border-t border-slate-850/60">
               <span>0%</span>
               <span>25%</span>
               <span>50%</span>
@@ -168,7 +170,7 @@ export default function DeepAnalysis({
           <div className="space-y-3">
             <div className="text-left">
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Common Missing Talent Gaps</h4>
-              <p className="text-xs text-slate-500 mt-1">The most common skills missing in parsed candidates.</p>
+              <p className="text-xs text-content-muted mt-1">The most common skills missing in parsed candidates.</p>
             </div>
             
             <div className="space-y-2 pt-1">
@@ -184,7 +186,7 @@ export default function DeepAnalysis({
                 </div>
               ))}
               {missingSkillMetrics.length === 0 && (
-                <p className="text-xs text-slate-500 italic py-4">No critical skill gaps identified.</p>
+                <p className="text-xs text-content-muted italic py-4">No critical skill gaps identified.</p>
               )}
             </div>
           </div>
@@ -198,20 +200,20 @@ export default function DeepAnalysis({
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3.5 rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-center">
                 <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Shortlist</span>
-                <p className="text-xl font-bold text-emerald-450 mt-1">{shortlistCount}</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">({((shortlistCount/totalCount)*100).toFixed(0)}%)</p>
+                <p className="text-xl font-bold text-emerald-400 mt-1">{shortlistCount}</p>
+                <p className="text-[9px] text-content-muted mt-0.5">({((shortlistCount/totalCount)*100).toFixed(0)}%)</p>
               </div>
 
               <div className="p-3.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-center">
                 <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Review</span>
-                <p className="text-xl font-bold text-amber-450 mt-1">{reviewCount}</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">({((reviewCount/totalCount)*100).toFixed(0)}%)</p>
+                <p className="text-xl font-bold text-amber-400 mt-1">{reviewCount}</p>
+                <p className="text-[9px] text-content-muted mt-0.5">({((reviewCount/totalCount)*100).toFixed(0)}%)</p>
               </div>
 
               <div className="p-3.5 rounded-lg border border-slate-800 bg-slate-900/40 text-center">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pending</span>
-                <p className="text-xl font-bold text-slate-450 mt-1">{pendingCount}</p>
-                <p className="text-[9px] text-slate-500 mt-0.5">({((pendingCount/totalCount)*100).toFixed(0)}%)</p>
+                <p className="text-xl font-bold text-content-muted mt-1">{pendingCount}</p>
+                <p className="text-[9px] text-content-muted mt-0.5">({((pendingCount/totalCount)*100).toFixed(0)}%)</p>
               </div>
             </div>
           </div>
