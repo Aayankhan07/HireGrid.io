@@ -30,8 +30,9 @@ HireGrid.io is an enterprise-grade recruitment intelligence platform that uses N
 |---|---|
 | Frontend | Next.js 16, React 19, Tailwind CSS |
 | Backend | FastAPI, Python 3.11 |
-| NLP | spaCy, sentence-transformers, pdfplumber |
-| Database | SQLite |
+| Parsing | pdfplumber + rule-based extraction |
+| Embeddings | sentence-transformers (configurable, default `all-MiniLM-L6-v2`) |
+| Database | SQLite (default) / PostgreSQL |
 
 ## Usage
 
@@ -40,13 +41,29 @@ HireGrid.io is an enterprise-grade recruitment intelligence platform that uses N
 3. Fill in the job title, description, required skills, and upload CVs
 4. Watch real-time analysis and review ranked candidates
 
+### Marking skill importance
+
+Suffix a required skill to weight it:
+
+```
+React!, TypeScript!, Node.js, Next.js?, PostgreSQL
+```
+
+`!` = must-have (double weight; missing it caps the skills score at 75%).
+`?` = nice-to-have (half weight). Unmarked skills carry normal weight, so a
+list written without markers behaves exactly as before.
+
 ## Local Development
 
 ```bash
+# Configure — JWT_SECRET is required in production and recommended locally
+cp .env.example .env
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+
 # Backend
 cd backend
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
 uvicorn app:app --reload --port 8000
 
 # Frontend (separate terminal)
@@ -55,9 +72,34 @@ npm install
 npm run dev
 ```
 
+## Tests
+
+```bash
+cd backend && python -m pytest tests/ -q
+python accuracy_checker/evaluator.py --min-ndcg 0.9   # scoring benchmark
+```
+
 ## Docker
 
 ```bash
-docker build -t hiregrid .
-docker run -p 7860:7860 hiregrid
+docker build --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=<your-id> -t hiregrid .
+
+docker run -p 7860:7860 \
+  -e ENV=production \
+  -e JWT_SECRET=<generated-secret> \
+  -v hiregrid_uploads:/app/backend/uploads \
+  hiregrid
 ```
+
+## Documentation
+
+Full technical documentation in [`docs/`](docs/README.md) — architecture, API
+reference, scoring engine, database schema, deployment, and troubleshooting.
+
+## Note on Scoring
+
+Fit scores rank candidates relative to each other within a screening. They are
+not calibrated percentages and should not be read as "X% qualified". Every
+candidate carries an audit log explaining their score, and candidates filtered
+out are recorded with a reason rather than discarded. Automated screening is a
+triage aid, not a hiring decision.
